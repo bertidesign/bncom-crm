@@ -24,7 +24,7 @@ Una vista di lavoro condivisa che collega le attività giornaliere ai progetti e
 
 ## Capabilities and Constraints
 
-MVP: gestione clienti, stati cliente, progetti, lavorazioni con data, descrizione, persona e durata; autenticazione semplice. Produzione su Vercel con Neon per dati e preferenze, Blob privato store-crm per marchio e allegati. Account individuali e amministratore di servizio senza reparti; progetti multi reparto, milestone, task, giornata personale, commenti, menzioni e file versionati. Archivio JSON disponibile soltanto per sviluppo locale. Modello previsto per evoluzioni successive.
+MVP: gestione clienti, stati cliente, progetti, lavorazioni con data, descrizione, persona e durata; autenticazione semplice. Produzione su Vercel con Neon per dati e preferenze, Blob privato store-crm per marchio e allegati. Account individuali e amministratore di servizio senza reparti; progetti multi reparto, milestone, task, giornata personale, commenti, menzioni e file versionati, modelli riutilizzabili, prerequisiti dei task e passaggi di consegna tra reparti. Archivio JSON disponibile soltanto per sviluppo locale. Modello previsto per evoluzioni successive.
 
 ## Evidence on Hand
 

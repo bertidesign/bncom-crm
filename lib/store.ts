@@ -3,6 +3,7 @@ import path from "node:path";
 import { neon } from "@neondatabase/serverless";
 import type { Database, Department, Project, TeamUser } from "@/lib/types";
 import { departments } from "@/lib/types";
+import { initialTemplates } from "@/lib/project-templates";
 import { defaultStudio, preferencesFor } from "@/lib/settings";
 import { hashPassword } from "@/lib/password";
 
@@ -13,6 +14,7 @@ function dayOffset(value: string, offset: number) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 const seed: Database = {
+  templates: initialTemplates,
   comments: [], files: [], pendingUploads: [],
   studio: { ...defaultStudio },
   clients: [
@@ -59,6 +61,7 @@ function inferDepartments(project: Partial<Project>): Department[] {
 export function normalizeDatabase(input: Partial<Database> | string): Database {
   const raw = typeof input === "string" ? JSON.parse(input) as Partial<Database> : input;
   const normalized: Database = {
+    templates: Array.isArray(raw.templates) ? raw.templates : structuredClone(initialTemplates),
     comments: Array.isArray(raw.comments) ? raw.comments : [],
     files: Array.isArray(raw.files) ? raw.files : [],
     pendingUploads: Array.isArray(raw.pendingUploads) ? raw.pendingUploads.filter(item => Date.parse(item.expiresAt) > Date.now()) : [],
@@ -67,7 +70,7 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     projects: Array.isArray(raw.projects) ? raw.projects.map(project => ({ ...project, departmentIds: inferDepartments(project), assigneeIds: Array.isArray(project.assigneeIds) ? project.assigneeIds : [] })) : [],
     entries: Array.isArray(raw.entries) ? raw.entries : [],
     milestones: Array.isArray(raw.milestones) ? raw.milestones : [],
-    tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
+    tasks: Array.isArray(raw.tasks) ? raw.tasks.map(task => ({ ...task, dependsOnIds: Array.isArray(task.dependsOnIds) ? task.dependsOnIds : [], handoffs: Array.isArray(task.handoffs) ? task.handoffs : [] })) : [],
     users: Array.isArray(raw.users) ? raw.users.map(user => user.role === "Admin" ? { ...user, departmentIds: [] } : user) : [],
     notifications: Array.isArray(raw.notifications) ? raw.notifications : []
   };

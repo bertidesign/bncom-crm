@@ -16,10 +16,20 @@
 
 ## Evoluzioni successive
 
-Modelli di progetto, dipendenze e passaggi di consegna, attività ricorrenti, pianificazione del carico, budget e consuntivi, approvazioni del cliente e calendario editoriale. Queste funzioni costituiscono la roadmap dopo il rilascio operativo corrente.
+Attività ricorrenti, pianificazione del carico, budget e consuntivi, approvazioni del cliente e calendario editoriale. Queste funzioni costituiscono la roadmap dopo il rilascio operativo corrente.
 
 ## Verifiche del rilascio
 
 Implementazione completata per i tre blocchi operativi. Build e controlli TypeScript superati. Flussi API verificati su archivio locale con account Admin, Web e Grafica: permessi degli stati, commenti, menzioni, privacy della giornata e delle ore, ticket upload e cancellazioni collegate. Verificate via browser le schermate desktop e mobile, la registrazione rapida delle ore, l’apertura di un task e il mantenimento della scheda durante gli aggiornamenti. I test Blob con provider simulato coprono callback ripetute, versioni concorrenti, dimensioni e percorsi; non costituiscono una prova di upload reale sullo store di produzione.
 
 Verifica reale autorizzata completata il 4 novembre 2026 sul deploy `e4f3a2d`: creato un progetto tecnico temporaneo, caricato un file TXT su Blob privato e scaricato tramite sessione autenticata. Il confronto dei contenuti è riuscito. Eliminato il progetto, verificata anche dal pannello Vercel la rimozione del file dallo storage.
+
+## Secondo rilascio operativo — modelli e flussi di lavoro
+
+- Libreria di modelli condivisi, gestita dagli amministratori: creazione, modifica, duplicazione, eliminazione e salvataggio della struttura di un progetto esistente. Tre strutture iniziali: sito web, identità visiva e campagna social.
+- Creazione da modello con scadenze relative alla data di avvio (giorni di calendario), milestone, reparti e prerequisiti. Gli assegnatari vengono determinati dalle persone scelte per il nuovo progetto, in base al reparto del task. I progetti creati sono indipendenti dal modello.
+- Prerequisiti tra task dello stesso progetto, controllo dei cicli e blocco di avvio/completamento quando manca un prerequisito. Riaperture e cancellazioni rispettano le attività successive già avviate.
+- Passaggi di consegna per task aperti: reparto destinatario, persone facoltative, nota, storico, presa in carico e annullamento con ripristino dell’incarico precedente. Gli amministratori coordinano e possono annullare, mentre la presa in carico è riservata ai collaboratori destinatari.
+- Giornata personale con filtro Pronti, motivazione dei blocchi e coda delle consegne da accettare. Avvisi nel CRM con preferenza separata per passaggi e task pronti.
+
+Verifiche del secondo rilascio: build e TypeScript, test API su archivi locali separati (permessi, copie indipendenti, scadenze, cicli, prerequisiti, notifiche senza duplicati, accettazioni ripetute e annullamenti), controlli browser desktop/mobile su creazione da modello, editor e gestione consegne. Queste verifiche usano dati locali; nessuna fixture aggiuntiva viene creata nel CRM di produzione.

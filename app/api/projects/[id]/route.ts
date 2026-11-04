@@ -1,3 +1,4 @@
+import { pendingHandoff } from "@/lib/task-workflow";
 import { removeCollaboration } from "@/lib/collaboration";
 import { removeFileBlobs } from "@/lib/project-files";
 import { NextRequest, NextResponse } from "next/server";
@@ -22,6 +23,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const { result } = await updateDatabase(db => {
       const project = db.projects.find(item => item.id === id); if (!project) return null;
       const nextDepartments = parsed.data.departmentIds || project.departmentIds;
+      if (db.tasks.some(task => task.projectId === id && task.departmentId && !nextDepartments.includes(task.departmentId))) return { error: "Sposta prima i task dei reparti che vuoi rimuovere." };
+      if (db.tasks.some(task => task.projectId === id && pendingHandoff(task)?.previousDepartmentId && !nextDepartments.includes(pendingHandoff(task)!.previousDepartmentId!))) return { error: "Un passaggio in attesa coinvolge il reparto che vuoi rimuovere. Gestisci prima la consegna." };
       const nextAssignees = parsed.data.assigneeIds || project.assigneeIds;
       if (parsed.data.clientId && !db.clients.some(client => client.id === parsed.data.clientId)) return { error: "Seleziona un cliente valido." };
       if (!validAssignments(nextAssignees, nextDepartments, db.users)) return { error: "Gli assegnatari devono appartenere a uno dei reparti selezionati." };
