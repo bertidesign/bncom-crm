@@ -1,3 +1,4 @@
+import type { StudioSettings, UserPreferences } from "@/lib/settings";
 export const departments = ["Grafica", "Web", "Social"] as const;
 export type Department = typeof departments[number];
 export type ClientStatus = "Attivo" | "In valutazione" | "In pausa" | "Concluso";
@@ -9,8 +10,8 @@ export type Milestone = { id: string; projectId: string; title: string; descript
 export type TaskStatus = "Da fare" | "In corso" | "Bloccato" | "Completato";
 export type Task = { id: string; projectId: string; milestoneId?: string; title: string; description?: string; dueDate?: string; status: TaskStatus; assigneeIds: string[]; createdAt: string };
 export type UserRole = "Admin" | "Collaboratore";
-export type TeamUser = { id: string; name: string; email: string; role: UserRole; departmentIds: Department[]; active: boolean; passwordHash: string; createdAt: string };
+export type TeamUser = { preferences?: UserPreferences; id: string; name: string; email: string; role: UserRole; departmentIds: Department[]; active: boolean; passwordHash: string; createdAt: string };
 export type Notification = { id: string; recipientId: string; actorId?: string; title: string; message: string; entityType: "project" | "milestone" | "task"; entityId: string; projectId: string; createdAt: string; readAt?: string };
 export type WorkEntry = { id: string; projectId: string; date: string; description: string; hours: number; person: string; createdAt: string };
-export type Database = { clients: Client[]; projects: Project[]; entries: WorkEntry[]; milestones: Milestone[]; tasks: Task[]; users: TeamUser[]; notifications: Notification[] };
+export type Database = { studio: StudioSettings; clients: Client[]; projects: Project[]; entries: WorkEntry[]; milestones: Milestone[]; tasks: Task[]; users: TeamUser[]; notifications: Notification[] };
 export type PublicUser = Omit<TeamUser, "passwordHash">;

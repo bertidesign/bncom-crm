@@ -29,3 +29,9 @@ Progetti, milestone, task, clienti, utenti e lavorazioni hanno API protette e va
 Next.js App Router, React, Node.js Route Handlers, TypeScript, Tailwind CSS v4 e Zod. Pensato per deploy Vercel dopo aver configurato database e segreti.
 
 La data della dashboard segue il fuso `Europe/Rome`; il foglio lavori si aggiorna quindi automaticamente al giorno corrente.
+
+### Impostazioni
+
+Ogni account può scegliere la propria palette (Salvia, Oceano, Iris, Terracotta o Grafite), la densità delle liste, la pagina iniziale e le notifiche operative da ricevere. Le preferenze sono salvate su Neon e si applicano ai dispositivi su cui si accede con lo stesso account. Dal profilo si possono modificare nome, email e password; per cambiare email o password serve la password attuale.
+
+La scheda Studio è riservata agli amministratori: nome, descrizione breve, email di contatto, ore giornaliere di riferimento e marchio. Il marchio accetta PNG, JPEG e WebP fino a 5 MB; il browser lo ridimensiona prima del salvataggio nel database. Nome e marchio sono visibili anche nella pagina di accesso. Il contatto dello studio resta disponibile al team autenticato. Gli archivi esistenti ricevono automaticamente i valori iniziali delle impostazioni senza perdere i dati precedenti.

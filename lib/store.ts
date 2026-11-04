@@ -3,6 +3,7 @@ import path from "node:path";
 import { neon } from "@neondatabase/serverless";
 import type { Database, Department, Project, TeamUser } from "@/lib/types";
 import { departments } from "@/lib/types";
+import { defaultStudio, preferencesFor } from "@/lib/settings";
 import { hashPassword } from "@/lib/password";
 
 const dataFile = path.join(process.env.CRM_DATA_DIR || path.join(process.cwd(), "data"), "crm.json");
@@ -12,6 +13,7 @@ function dayOffset(value: string, offset: number) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 const seed: Database = {
+  studio: { ...defaultStudio },
   clients: [
     { id: "c1", name: "Studio Marconi", company: "Studio Marconi", email: "ciao@studiomarconi.it", status: "Attivo", color: "#d5e5de", createdAt: "2026-10-08T09:00:00.000Z" },
     { id: "c2", name: "Tenuta San Pietro", company: "Tenuta San Pietro", email: "info@tenutasanpietro.it", status: "In valutazione", color: "#ead9c8", createdAt: "2026-10-17T09:00:00.000Z" },
@@ -56,6 +58,7 @@ function inferDepartments(project: Partial<Project>): Department[] {
 export function normalizeDatabase(input: Partial<Database> | string): Database {
   const raw = typeof input === "string" ? JSON.parse(input) as Partial<Database> : input;
   const normalized: Database = {
+    studio: { ...defaultStudio, ...raw.studio },
     clients: Array.isArray(raw.clients) ? raw.clients : [],
     projects: Array.isArray(raw.projects) ? raw.projects.map(project => ({ ...project, departmentIds: inferDepartments(project), assigneeIds: Array.isArray(project.assigneeIds) ? project.assigneeIds : [] })) : [],
     entries: Array.isArray(raw.entries) ? raw.entries : [],
@@ -65,6 +68,7 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     notifications: Array.isArray(raw.notifications) ? raw.notifications : []
   };
   if (!normalized.users.length) { const admin = bootstrapAdmin(); if (admin) normalized.users.push(admin); }
+  normalized.users = normalized.users.map(user => ({ ...user, preferences: preferencesFor(user.preferences) }));
   const serviceIds = new Set(normalized.users.filter(user => user.role === "Admin").map(user => user.id));
   for (const item of [...normalized.projects, ...normalized.milestones, ...normalized.tasks]) item.assigneeIds = item.assigneeIds.filter(id => !serviceIds.has(id));
   normalized.notifications = normalized.notifications.filter(item => !serviceIds.has(item.recipientId));
