@@ -18,7 +18,9 @@ Prima di esporre l'app, imposta `CRM_PASSWORD` e `SESSION_SECRET` con valori for
 
 ## Dati
 
-Il primo avvio crea `data/crm.json` con dati sintetici per mostrare le viste. Questo archivio su filesystem è adatto solo allo sviluppo locale: il filesystem delle funzioni Vercel non è una persistenza affidabile. Prima di un deploy condiviso, collegare un database gestito (ad esempio Postgres) e spostare lo store in `lib/store.ts`; usare inoltre un'autenticazione per utente se serve tracciare gli operatori.
+In locale, senza `DATABASE_URL`, il primo avvio crea `data/crm.json` con dati sintetici. Su Vercel è richiesto un database PostgreSQL persistente collegato tramite `DATABASE_URL` (o `POSTGRES_URL`); il progetto crea automaticamente la tabella `bncom_crm_state` e inizializza il dataset demo al primo avvio. Senza la variabile, le API restituiscono un errore esplicito di configurazione e non tentano di scrivere nel filesystem read-only o temporaneo.
+
+Per Vercel, collega un provider PostgreSQL dal Marketplace (ad esempio Neon) e rendi disponibile `DATABASE_URL` nell’ambiente Production, poi ridistribuisci. I dati di lavoro non vengono salvati nella cartella del deploy. Le scritture PostgreSQL usano un controllo di revisione per gestire aggiornamenti concorrenti.
 
 Le route `/api/clients`, `/api/projects` e `/api/work-entries` espongono CRUD essenziale protetto da sessione. I payload sono validati server-side.
 

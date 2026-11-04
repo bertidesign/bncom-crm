@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { neon } from "@neondatabase/serverless";
 import type { Database } from "@/lib/types";
 
 const dataFile = path.join(process.env.CRM_DATA_DIR || path.join(process.cwd(), "data"), "crm.json");
@@ -33,17 +34,54 @@ const seed: Database = {
     { id: "w7", projectId: "p5", date: dayOffset(demoToday, -2), description: "Revisione delle fotografie e selezione immagini.", hours: 1, person: "Luca", createdAt: `${dayOffset(demoToday, -2)}T14:00:00.000Z` }
   ]
 };
-let writeQueue = Promise.resolve();
 
-async function ensureStore() {
+let schemaReady: Promise<void> | undefined;
+let writeQueue = Promise.resolve();
+function databaseUrl() { return process.env.DATABASE_URL || process.env.POSTGRES_URL; }
+function sqlClient() {
+  const url = databaseUrl();
+  if (!url) throw new Error("DATABASE_URL non configurata: collega un database Postgres/Neon al progetto Vercel.");
+  return neon(url);
+}
+async function ensureSchema() {
+  if (!schemaReady) {
+    schemaReady = (async () => {
+      const sql = sqlClient();
+      await sql`CREATE TABLE IF NOT EXISTS bncom_crm_state (id integer PRIMARY KEY CHECK (id = 1), revision bigint NOT NULL DEFAULT 0, data jsonb NOT NULL)`;
+      await sql`INSERT INTO bncom_crm_state (id, revision, data) VALUES (1, 0, ${JSON.stringify(seed)}::jsonb) ON CONFLICT (id) DO NOTHING`;
+    })().catch(error => { schemaReady = undefined; throw error; });
+  }
+  await schemaReady;
+}
+async function ensureLocalStore() {
   await fs.mkdir(path.dirname(dataFile), { recursive: true });
   try { await fs.access(dataFile); } catch { await fs.writeFile(dataFile, JSON.stringify(seed, null, 2)); }
 }
 export async function getDatabase(): Promise<Database> {
-  await ensureStore();
+  if (databaseUrl()) {
+    await ensureSchema();
+    const rows = await sqlClient()`SELECT data FROM bncom_crm_state WHERE id = 1`;
+    return rows[0].data as Database;
+  }
+  if (process.env.VERCEL) throw new Error("DATABASE_URL non configurata: collega un database Postgres/Neon al progetto Vercel.");
+  await ensureLocalStore();
   return JSON.parse(await fs.readFile(dataFile, "utf8")) as Database;
 }
 export async function updateDatabase<T>(mutator: (db: Database) => T | Promise<T>): Promise<{ db: Database; result: T }> {
+  if (databaseUrl()) {
+    await ensureSchema();
+    const sql = sqlClient();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const rows = await sql`SELECT revision, data FROM bncom_crm_state WHERE id = 1`;
+      const revision = Number(rows[0].revision);
+      const db = rows[0].data as Database;
+      const result = await mutator(db);
+      const updated = await sql`UPDATE bncom_crm_state SET data = ${JSON.stringify(db)}::jsonb, revision = revision + 1 WHERE id = 1 AND revision = ${revision} RETURNING revision`;
+      if (updated.length) return { db, result };
+    }
+    throw new Error("Database occupato: impossibile salvare dopo più tentativi. Riprova.");
+  }
+  if (process.env.VERCEL) throw new Error("DATABASE_URL non configurata: il CRM non salva su filesystem temporaneo Vercel.");
   let result!: T;
   let db!: Database;
   const operation = writeQueue.then(async () => { db = await getDatabase(); result = await mutator(db); const temp = `${dataFile}.tmp`; await fs.writeFile(temp, JSON.stringify(db, null, 2)); await fs.rename(temp, dataFile); });
