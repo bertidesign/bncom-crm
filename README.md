@@ -12,7 +12,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Apri http://localhost:3000. In sviluppo, senza `.env.local`, la password demo è `bncom-demo`.
+Apri http://localhost:3000. In sviluppo, senza `.env.local`, l’account iniziale è `admin@bncom.it` con password `bncom-demo`. In produzione l’account amministratore iniziale usa `CRM_ADMIN_EMAIL` (default `admin@bncom.it`) e la password `CRM_PASSWORD`.
 
 Prima di esporre l'app, imposta `CRM_PASSWORD` e `SESSION_SECRET` con valori forti in `.env.local` o nelle variabili d'ambiente di deployment. La sessione è firmata e conservata in cookie HTTP-only con scadenza di sette giorni.
 
@@ -22,7 +22,7 @@ In locale, senza `DATABASE_URL`, il primo avvio crea `data/crm.json` con dati si
 
 Per Vercel, collega un provider PostgreSQL dal Marketplace (ad esempio Neon) e rendi disponibile `DATABASE_URL` nell’ambiente Production, poi ridistribuisci. I dati di lavoro non vengono salvati nella cartella del deploy. Le scritture PostgreSQL usano un controllo di revisione per gestire aggiornamenti concorrenti.
 
-Le route `/api/clients`, `/api/projects` e `/api/work-entries` espongono CRUD essenziale protetto da sessione. I payload sono validati server-side.
+Progetti, milestone, task, clienti, utenti e lavorazioni hanno API protette e validate server-side. I reparti Grafica, Web e Social possono essere assegnati a uno o più progetti; gli utenti ricevono notifiche nel CRM quando cambiano gli stati dei progetti, delle milestone o dei task loro assegnati o del loro reparto. Le notifiche si aggiornano automaticamente mentre l’app è aperta.
 
 ## Stack
 
