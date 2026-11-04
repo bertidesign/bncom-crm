@@ -44,7 +44,7 @@ const seed: Database = {
 function bootstrapAdmin(): TeamUser | null {
   const password = process.env.CRM_PASSWORD || (process.env.NODE_ENV === "development" ? "bncom-demo" : "");
   if (!password) return null;
-  return { id: "admin-bncom", name: process.env.CRM_ADMIN_NAME || "Amministratore BNCom", email: (process.env.CRM_ADMIN_EMAIL || "admin@bncom.it").toLowerCase(), role: "Admin", departmentIds: [...departments], active: true, passwordHash: hashPassword(password), createdAt: new Date().toISOString() };
+  return { id: "admin-bncom", name: process.env.CRM_ADMIN_NAME || "Amministratore BNCom", email: (process.env.CRM_ADMIN_EMAIL || "admin@bncom.it").toLowerCase(), role: "Admin", departmentIds: [], active: true, passwordHash: hashPassword(password), createdAt: new Date().toISOString() };
 }
 function inferDepartments(project: Partial<Project>): Department[] {
   if (project.departmentIds?.length) return project.departmentIds.filter((d): d is Department => departments.includes(d));
@@ -61,10 +61,13 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     entries: Array.isArray(raw.entries) ? raw.entries : [],
     milestones: Array.isArray(raw.milestones) ? raw.milestones : [],
     tasks: Array.isArray(raw.tasks) ? raw.tasks : [],
-    users: Array.isArray(raw.users) ? raw.users : [],
+    users: Array.isArray(raw.users) ? raw.users.map(user => user.role === "Admin" ? { ...user, departmentIds: [] } : user) : [],
     notifications: Array.isArray(raw.notifications) ? raw.notifications : []
   };
   if (!normalized.users.length) { const admin = bootstrapAdmin(); if (admin) normalized.users.push(admin); }
+  const serviceIds = new Set(normalized.users.filter(user => user.role === "Admin").map(user => user.id));
+  for (const item of [...normalized.projects, ...normalized.milestones, ...normalized.tasks]) item.assigneeIds = item.assigneeIds.filter(id => !serviceIds.has(id));
+  normalized.notifications = normalized.notifications.filter(item => !serviceIds.has(item.recipientId));
   return normalized;
 }
 
