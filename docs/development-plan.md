@@ -21,3 +21,5 @@ Modelli di progetto, dipendenze e passaggi di consegna, attività ricorrenti, pi
 ## Verifiche del rilascio
 
 Implementazione completata per i tre blocchi operativi. Build e controlli TypeScript superati. Flussi API verificati su archivio locale con account Admin, Web e Grafica: permessi degli stati, commenti, menzioni, privacy della giornata e delle ore, ticket upload e cancellazioni collegate. Verificate via browser le schermate desktop e mobile, la registrazione rapida delle ore, l’apertura di un task e il mantenimento della scheda durante gli aggiornamenti. I test Blob con provider simulato coprono callback ripetute, versioni concorrenti, dimensioni e percorsi; non costituiscono una prova di upload reale sullo store di produzione.
+
+Verifica reale autorizzata completata il 4 novembre 2026 sul deploy `e4f3a2d`: creato un progetto tecnico temporaneo, caricato un file TXT su Blob privato e scaricato tramite sessione autenticata. Il confronto dei contenuti è riuscito. Eliminato il progetto, verificata anche dal pannello Vercel la rimozione del file dallo storage.
