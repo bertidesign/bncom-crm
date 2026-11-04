@@ -1,10 +1,12 @@
 import type { StudioSettings, UserPreferences } from "@/lib/settings";
 export const departments = ["Grafica", "Web", "Social"] as const;
+export const departmentStatuses = ["Da avviare", "In corso", "In revisione", "In attesa", "Completato"] as const;
+export type DepartmentStatus = typeof departmentStatuses[number];
 export type Department = typeof departments[number];
 export type ClientStatus = "Attivo" | "In valutazione" | "In pausa" | "Concluso";
 export type Client = { id: string; name: string; company: string; email: string; phone?: string; notes?: string; status: ClientStatus; color: string; createdAt: string };
 export type ProjectStatus = "In corso" | "In attesa" | "Completato";
-export type Project = { id: string; name: string; clientId: string; status: ProjectStatus; color: string; description?: string; dueDate?: string; departmentIds: Department[]; assigneeIds: string[]; createdAt: string };
+export type Project = { departmentProgress?: Partial<Record<Department, { status: DepartmentStatus; updatedAt?: string; updatedBy?: string }>>; id: string; name: string; clientId: string; status: ProjectStatus; color: string; description?: string; dueDate?: string; departmentIds: Department[]; assigneeIds: string[]; createdAt: string };
 export type MilestoneStatus = "Da fare" | "In corso" | "Completata";
 export type Milestone = { id: string; projectId: string; title: string; description?: string; dueDate?: string; status: MilestoneStatus; assigneeIds: string[]; createdAt: string };
 export type TaskStatus = "Da fare" | "In corso" | "Bloccato" | "Completato";
@@ -12,6 +14,9 @@ export type Task = { id: string; projectId: string; milestoneId?: string; title:
 export type UserRole = "Admin" | "Collaboratore";
 export type TeamUser = { preferences?: UserPreferences; id: string; name: string; email: string; role: UserRole; departmentIds: Department[]; active: boolean; passwordHash: string; createdAt: string };
 export type Notification = { id: string; recipientId: string; actorId?: string; title: string; message: string; entityType: "project" | "milestone" | "task"; entityId: string; projectId: string; createdAt: string; readAt?: string };
-export type WorkEntry = { id: string; projectId: string; date: string; description: string; hours: number; person: string; createdAt: string };
-export type Database = { studio: StudioSettings; clients: Client[]; projects: Project[]; entries: WorkEntry[]; milestones: Milestone[]; tasks: Task[]; users: TeamUser[]; notifications: Notification[] };
+export type WorkEntry = { userId?: string; taskId?: string; id: string; projectId: string; date: string; description: string; hours: number; person: string; createdAt: string };
+export type ProjectComment = { id: string; projectId: string; taskId?: string; authorId: string; authorName: string; body: string; mentionIds: string[]; createdAt: string; updatedAt?: string };
+export type ProjectFile = { id: string; projectId: string; taskId?: string; groupId: string; version: number; name: string; size: number; contentType: string; blobPath: string; uploadedBy: string; uploadedByName: string; createdAt: string };
+export type PendingUpload = { id: string; projectId: string; taskId?: string; groupId: string; name: string; size: number; contentType: string; blobPath: string; uploadedBy: string; uploadedByName: string; expiresAt: string };
+export type Database = { comments: ProjectComment[]; files: ProjectFile[]; pendingUploads: PendingUpload[]; studio: StudioSettings; clients: Client[]; projects: Project[]; entries: WorkEntry[]; milestones: Milestone[]; tasks: Task[]; users: TeamUser[]; notifications: Notification[] };
 export type PublicUser = Omit<TeamUser, "passwordHash">;

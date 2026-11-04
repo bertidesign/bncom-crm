@@ -1,3 +1,5 @@
+import { removeCollaboration } from "@/lib/collaboration";
+import { removeFileBlobs } from "@/lib/project-files";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDatabase, updateDatabase } from "@/lib/store";
@@ -34,6 +36,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 }
 export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   const denied = await requireSession(); if (denied) return denied;
-  try { const { id } = await context.params; const { result } = await updateDatabase(db => { if (!db.projects.some(project => project.id === id)) return false; const milestoneIds = new Set(db.milestones.filter(item => item.projectId === id).map(item => item.id)); db.projects = db.projects.filter(project => project.id !== id); db.entries = db.entries.filter(entry => entry.projectId !== id); db.tasks = db.tasks.filter(task => task.projectId !== id); db.milestones = db.milestones.filter(milestone => milestone.projectId !== id); db.notifications = db.notifications.filter(item => item.projectId !== id && !milestoneIds.has(item.entityId)); return true; }); return result ? NextResponse.json({ ok: true }) : NextResponse.json({ error: "Progetto non trovato." }, { status: 404 }); }
-  catch (error) { return apiError(error); }
+  try { const { id } = await context.params; const { result } = await updateDatabase(db => {
+    if (!db.projects.some(project => project.id === id)) return null;
+    const paths = removeCollaboration(db, new Set([id]));
+    db.projects = db.projects.filter(project => project.id !== id); db.entries = db.entries.filter(entry => entry.projectId !== id); db.tasks = db.tasks.filter(task => task.projectId !== id); db.milestones = db.milestones.filter(milestone => milestone.projectId !== id); db.notifications = db.notifications.filter(item => item.projectId !== id);
+    return { paths };
+  }); if (!result) return NextResponse.json({ error: "Progetto non trovato." }, { status: 404 }); await removeFileBlobs(result.paths); return NextResponse.json({ ok: true }); } catch (error) { return apiError(error); }
 }

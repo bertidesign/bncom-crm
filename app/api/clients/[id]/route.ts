@@ -1,3 +1,5 @@
+import { removeCollaboration } from "@/lib/collaboration";
+import { removeFileBlobs } from "@/lib/project-files";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDatabase, updateDatabase } from "@/lib/store";
@@ -51,13 +53,18 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       const projectIds = new Set(db.projects.filter(project => project.clientId === id).map(project => project.id));
       const entries = db.entries.filter(entry => projectIds.has(entry.projectId)).length;
       if (projectIds.size && !cascade) return { missing: false, blocked: true, projects: projectIds.size, entries };
+      const paths = removeCollaboration(db, projectIds);
+      db.tasks = db.tasks.filter(task => !projectIds.has(task.projectId));
+      db.milestones = db.milestones.filter(item => !projectIds.has(item.projectId));
+      db.notifications = db.notifications.filter(item => !projectIds.has(item.projectId));
       db.entries = db.entries.filter(entry => !projectIds.has(entry.projectId));
       db.projects = db.projects.filter(project => project.clientId !== id);
       db.clients = db.clients.filter(item => item.id !== id);
-      return { missing: false, blocked: false, projects: projectIds.size, entries };
+      return { missing: false, blocked: false, projects: projectIds.size, entries, paths };
     });
     if (result.missing) return NextResponse.json({ error: "Cliente non trovato." }, { status: 404 });
     if (result.blocked) return NextResponse.json({ error: "Il cliente ha progetti collegati. Conferma l'eliminazione completa per rimuovere anche progetti e lavorazioni." }, { status: 409 });
+    await removeFileBlobs(result.paths || []);
     return NextResponse.json({ ok: true, deletedProjects: result.projects, deletedEntries: result.entries });
   } catch (error) { return apiError(error); }
 }

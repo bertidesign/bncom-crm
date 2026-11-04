@@ -39,3 +39,15 @@ La scheda Studio è riservata agli amministratori: nome, descrizione breve, emai
 ### Storage file
 
 Il marchio usa Vercel Blob privato (`store-crm`), con `BLOB_STORE_ID` e `BLOB_READ_WRITE_TOKEN` configurati nel progetto Vercel. Il token viene usato soltanto dal server. L’endpoint `/api/branding/logo` mostra esclusivamente il marchio corrente anche agli utenti non autenticati, per la pagina di accesso; non permette di leggere percorsi arbitrari dello storage. Sostituzione e rimozione del marchio aggiornano Neon prima della cancellazione del vecchio file. Gli eventuali marchi già salvati inline rimangono leggibili e vengono trasferiti su Blob al successivo salvataggio delle impostazioni Studio. In locale serve un token Blob valido per caricare un nuovo marchio.
+
+### Operatività quotidiana e collaborazione
+
+- **La mia giornata**: task assegnati all'account, filtri per scadenze, blocchi e completati, ore registrate oggi, collegamento diretto alla scheda task. L'admin ha una vista di coordinamento del team. Può essere scelta come pagina iniziale nelle preferenze.
+- **Avanzamento per reparto**: Grafica, Web e Social hanno stati indipendenti (Da avviare, In corso, In revisione, In attesa, Completato). Li aggiornano il relativo reparto e gli amministratori; il cambio genera notifiche secondo le preferenze degli interessati. Lo stato generale del progetto resta esplicito.
+- **Discussioni**: commenti separati per progetto e task, menzioni dei collaboratori con avvisi nel CRM e link esterni. Autore e admin possono modificare o eliminare i commenti.
+- **Allegati privati**: upload diretto su `store-crm` fino a 25 MB, autorizzato con ticket per utente/progetto/task e con scadenza. Il token globale dello store resta sul server. La finalizzazione è idempotente tra callback Blob e conferma del browser; nuove versioni conservano quelle precedenti. Il download richiede una sessione e consegna il file come allegato. Ogni autore può eliminare le proprie versioni; l'admin può gestirle tutte.
+- **Ore per task**: le nuove lavorazioni includono l'account che le registra e il task facoltativo. Per i collaboratori la persona viene determinata dal server. I record storici rimangono nel foglio lavori e non vengono attribuiti per somiglianza di nome.
+
+L'accesso a progetti e materiali segue il modello condiviso dello studio: tutti gli account attivi possono consultarli. Le assegnazioni definiscono la giornata personale e i destinatari degli avvisi. Eliminare clienti, progetti, milestone o task rimuove anche discussioni e allegati collegati; eliminare un task mantiene le ore storiche. I vecchi oggetti Blob vengono rimossi dopo il commit del database, con tentativo di pulizia separato. Un errore del provider durante tale pulizia può richiedere una successiva rimozione del file orfano dallo storage.
+
+Il piano del rilascio e la roadmap sono in `docs/development-plan.md`.

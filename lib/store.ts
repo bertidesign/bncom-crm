@@ -13,6 +13,7 @@ function dayOffset(value: string, offset: number) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 const seed: Database = {
+  comments: [], files: [], pendingUploads: [],
   studio: { ...defaultStudio },
   clients: [
     { id: "c1", name: "Studio Marconi", company: "Studio Marconi", email: "ciao@studiomarconi.it", status: "Attivo", color: "#d5e5de", createdAt: "2026-10-08T09:00:00.000Z" },
@@ -58,6 +59,9 @@ function inferDepartments(project: Partial<Project>): Department[] {
 export function normalizeDatabase(input: Partial<Database> | string): Database {
   const raw = typeof input === "string" ? JSON.parse(input) as Partial<Database> : input;
   const normalized: Database = {
+    comments: Array.isArray(raw.comments) ? raw.comments : [],
+    files: Array.isArray(raw.files) ? raw.files : [],
+    pendingUploads: Array.isArray(raw.pendingUploads) ? raw.pendingUploads.filter(item => Date.parse(item.expiresAt) > Date.now()) : [],
     studio: { ...defaultStudio, ...raw.studio },
     clients: Array.isArray(raw.clients) ? raw.clients : [],
     projects: Array.isArray(raw.projects) ? raw.projects.map(project => ({ ...project, departmentIds: inferDepartments(project), assigneeIds: Array.isArray(project.assigneeIds) ? project.assigneeIds : [] })) : [],
@@ -67,6 +71,7 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     users: Array.isArray(raw.users) ? raw.users.map(user => user.role === "Admin" ? { ...user, departmentIds: [] } : user) : [],
     notifications: Array.isArray(raw.notifications) ? raw.notifications : []
   };
+  normalized.projects = normalized.projects.map(project => ({ ...project, departmentProgress: Object.fromEntries(project.departmentIds.map(department => [department, project.departmentProgress?.[department] || { status: project.status === "Completato" ? "Completato" : "Da avviare" }])) }));
   if (!normalized.users.length) { const admin = bootstrapAdmin(); if (admin) normalized.users.push(admin); }
   normalized.users = normalized.users.map(user => ({ ...user, preferences: preferencesFor(user.preferences) }));
   const serviceIds = new Set(normalized.users.filter(user => user.role === "Admin").map(user => user.id));

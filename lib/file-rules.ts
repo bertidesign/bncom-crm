@@ -1,0 +1,4 @@
+export const MAX_FILE_SIZE = 25 * 1024 * 1024;
+export const fileTypes: Record<string, string> = { pdf: "application/pdf", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif", txt: "text/plain", csv: "text/csv", zip: "application/zip", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation", psd: "application/octet-stream", ai: "application/octet-stream", fig: "application/octet-stream", svg: "application/octet-stream", eps: "application/octet-stream" };
+export const fileAccept = Object.keys(fileTypes).map(extension => `.${extension}`).join(",");
+export function fileContentType(name: string) { return fileTypes[name.split(".").pop()?.toLowerCase() || ""]; }

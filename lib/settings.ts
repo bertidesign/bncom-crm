@@ -10,11 +10,11 @@ export const palettes = {
 export type UserPreferences = {
   palette: keyof typeof palettes;
   density: "comfortable" | "compact";
-  startPage: "Panoramica" | "Clienti" | "Progetti" | "Lavorazioni";
-  notifications: Record<Notification["entityType"], boolean>;
+  startPage: "La mia giornata" | "Panoramica" | "Clienti" | "Progetti" | "Lavorazioni";
+  notifications: Record<Notification["entityType"], boolean> & { mentions: boolean };
 };
 export type StudioSettings = { name: string; tagline: string; contactEmail: string; logo: string; logoPath?: string; workdayHours: number };
-export const defaultPreferences: UserPreferences = { palette: "salvia", density: "comfortable", startPage: "Panoramica", notifications: { project: true, milestone: true, task: true } };
+export const defaultPreferences: UserPreferences = { palette: "salvia", density: "comfortable", startPage: "Panoramica", notifications: { project: true, milestone: true, task: true, mentions: true } };
 export const defaultStudio: StudioSettings = { name: "BNCom Studio", tagline: "Spazio di lavoro", contactEmail: "", logo: "", workdayHours: 8 };
 export function preferencesFor(value?: Partial<UserPreferences>): UserPreferences {
   return { ...defaultPreferences, ...value, notifications: { ...defaultPreferences.notifications, ...value?.notifications } };

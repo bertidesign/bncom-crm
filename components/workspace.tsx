@@ -1,14 +1,15 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowDownToLine, ArrowRight, BriefcaseBusiness, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Command, FileText, LayoutDashboard, LogOut, Mail, MoreHorizontal, Pencil, Phone, Plus, Search, Settings2, Trash2, Users, X } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, BriefcaseBusiness, CalendarDays, CalendarCheck2, Check, ChevronDown, CircleHelp, Clock3, Command, FileText, LayoutDashboard, LogOut, Mail, MoreHorizontal, Pencil, Phone, Plus, Search, Settings2, Trash2, Users, X } from "lucide-react";
 import type { Client, ClientStatus, Project, ProjectStatus, PublicUser, WorkEntry } from "@/lib/types";
+import { MyDay } from "@/components/my-day";
 import { SettingsWorkspace } from "@/components/settings-workspace";
 import { defaultStudio, palettes, preferencesFor, type StudioSettings } from "@/lib/settings";
 import { ProjectsWorkspace } from "@/components/projects-workspace";
 import { TeamWorkspace } from "@/components/team-workspace";
 import { NotificationsMenu } from "@/components/notifications-menu";
 
-type Tab = "Panoramica" | "Clienti" | "Progetti" | "Lavorazioni" | "Team" | "Impostazioni";
+type Tab = "La mia giornata" | "Panoramica" | "Clienti" | "Progetti" | "Lavorazioni" | "Team" | "Impostazioni";
 type Data = { clients: Client[]; projects: Project[]; entries: WorkEntry[] };
 const blank: Data = { clients: [], projects: [], entries: [] };
 const today = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" });
@@ -26,6 +27,7 @@ export function Workspace() {
   const [data, setData] = useState<Data>(blank);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [currentUser, setCurrentUser] = useState<PublicUser | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
   const [openProjectId, setOpenProjectId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -40,7 +42,7 @@ export function Workspace() {
   const [me, setMe] = useState("Andrea");
 
   const refresh = useCallback(async () => {
-    setLoading(true); setError("");
+    if (initializedUser.current === null) setLoading(true); setError("");
     try {
       const authResponse = await fetch("/api/auth/status");
       const auth = await authResponse.json();
@@ -74,7 +76,7 @@ export function Workspace() {
   }, [currentUser]);
   useEffect(() => { document.title = `${studio.name} · ${studio.tagline || "CRM"}`; }, [studio.name, studio.tagline]);
   function updateSettingsUser(user: PublicUser) { setCurrentUser(user); setMe(user.name); }
-  const clearOpenedProject = useCallback(() => setOpenProjectId(null), []);
+  const clearOpenedProject = useCallback(() => { setOpenProjectId(null); setOpenTaskId(null); }, []);
 
   async function api(path: string, init: RequestInit) {
     const response = await fetch(path, { ...init, headers: { "Content-Type": "application/json", ...init.headers } });
@@ -96,8 +98,8 @@ export function Workspace() {
 
   if (authenticated === null || loading && authenticated !== false) return <div className="loading-screen"><div className="loading-mark">b.</div><span>Caricamento spazio di lavoro…</span></div>;
   if (!authenticated) return <Login onLogin={login} busy={busy} error={loginError} studio={studio} />;
-  const nav: { label: Tab; icon: typeof LayoutDashboard }[] = [{ label: "Panoramica", icon: LayoutDashboard }, { label: "Clienti", icon: Users }, { label: "Progetti", icon: BriefcaseBusiness }, { label: "Lavorazioni", icon: FileText }, ...(currentUser?.role === "Admin" ? [{ label: "Team" as Tab, icon: Users }] : [])];
-  function openNotificationProject(projectId: string) { setTab("Progetti"); setOpenProjectId(projectId); }
+  const nav: { label: Tab; icon: typeof LayoutDashboard }[] = [{ label: "La mia giornata", icon: CalendarCheck2 }, { label: "Panoramica", icon: LayoutDashboard }, { label: "Clienti", icon: Users }, { label: "Progetti", icon: BriefcaseBusiness }, { label: "Lavorazioni", icon: FileText }, ...(currentUser?.role === "Admin" ? [{ label: "Team" as Tab, icon: Users }] : [])];
+  function openNotificationProject(projectId?: string, taskId?: string) { setTab("Progetti"); setOpenProjectId(projectId || null); setOpenTaskId(taskId || null); }
   const selectedClient = clientSheetId ? data.clients.find(item => item.id === clientSheetId) : undefined;
   const editingClient = clientEditId ? data.clients.find(item => item.id === clientEditId) : undefined;
   return <div className="app-shell">
@@ -105,7 +107,7 @@ export function Workspace() {
       <div className="brand"><StudioBrand studio={studio}/><button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Chiudi menu"><X size={18}/></button></div>
       <button className="workspace-switch"><span className="workspace-avatar">B</span><span className="workspace-name">{studio.name}<small>{studio.tagline}</small></span><ChevronDown size={15}/></button>
       <div className="side-label">MENU</div>
-      <nav className="side-nav" aria-label="Menu principale">{nav.map(({ label, icon: Icon }) => <button key={label} className={cx("nav-item", tab === label && "nav-active")} onClick={() => { setTab(label); setMobileNav(false); }}><Icon size={18} strokeWidth={1.8}/><span>{label}</span>{label === "Lavorazioni" && <span className="nav-count">{data.entries.length}</span>}</button>)}</nav>
+      <nav className="side-nav" aria-label="Menu principale">{nav.map(({ label, icon: Icon }) => <button key={label} className={cx("nav-item", tab === label && "nav-active")} onClick={() => { setTab(label); setMobileNav(false); }}><Icon size={18} strokeWidth={1.8}/><span>{label === "La mia giornata" && currentUser?.role === "Admin" ? "Giornata studio" : label}</span>{label === "Lavorazioni" && <span className="nav-count">{data.entries.length}</span>}</button>)}</nav>
       <div className="side-label client-label">CLIENTI <button title="Aggiungi cliente" onClick={() => setDialog("client")}><Plus size={15}/></button></div>
       <div className="client-shortcuts">{data.clients.slice(0, 5).map(client => <button key={client.id} className="client-shortcut" onClick={() => { setTab("Clienti"); setClientSheetId(client.id); setDialog("client-detail"); }}><span className="client-dot" style={{ background: client.color }}/><span>{client.name}</span><span className="client-project-count">{data.projects.filter(p => p.clientId === client.id).length}</span></button>)}</div>
       <div className="sidebar-bottom"><div className="help-box"><div className="help-icon"><CircleHelp size={17}/></div><div><strong>Serve una mano?</strong><span>{studio.contactEmail ? <a href={`mailto:${studio.contactEmail}`}>Contatta lo studio</a> : "Il team è qui per aiutarti."}</span></div><ArrowRight size={14}/></div><button className={cx("nav-item settings-link", tab === "Impostazioni" && "nav-active")} onClick={() => { setTab("Impostazioni"); setMobileNav(false); }}><Settings2 size={18}/><span>Impostazioni</span></button><div className="profile-row"><div className="profile-avatar">{initials(me)}</div><div className="profile-info"><strong>{me}</strong><span>{currentUser?.role || "Collaboratore"}</span></div><button aria-label="Esci" onClick={logout} title="Esci"><LogOut size={16}/></button></div></div>
@@ -124,7 +126,8 @@ export function Workspace() {
             <aside className="right-column"><section className="side-card"><div className="side-card-heading"><div><h3>Progetti in corso</h3><p>Il lavoro che si muove.</p></div><button onClick={() => setTab("Progetti")} aria-label="Apri progetti"><MoreHorizontal size={19}/></button></div><div className="project-list">{data.projects.filter(p => p.status === "In corso").slice(0, 4).map(p => <ProjectMini key={p.id} project={p} client={data.clients.find(c => c.id === p.clientId)} hours={data.entries.filter(e => e.projectId === p.id).reduce((s, e) => s + e.hours, 0)}/>)}</div><button className="side-card-link" onClick={() => setTab("Progetti")}>Tutti i progetti <ArrowRight size={14}/></button></section><section className="week-card"><div className="week-top"><div><span>QUESTA SETTIMANA</span><h3>{weekHours.toLocaleString("it-IT")} <small>ore</small></h3></div><div className="week-glyph"><Clock3 size={20}/></div></div><div className="week-days">{["L", "M", "M", "G", "V", "S", "D"].map((day, i) => { const dt = new Date(`${today}T12:00:00`); dt.setDate(dt.getDate() - dt.getDay() + 1 + i); const iso = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`; const hrs = data.entries.filter(e => e.date === iso).reduce((s, e) => s + e.hours, 0); return <div key={i} className="day-col"><span className={iso === today ? "day-current" : ""}>{day}</span><div className="day-bar-track"><div className={cx("day-bar", iso === today && "day-bar-current")} style={{ height: `${Math.max(hrs ? Math.min(hrs / studio.workdayHours * 100, 100) : 5, 5)}%` }}/></div><small>{hrs ? `${hrs}h` : "—"}</small></div>; })}</div></section><section className="tip-card"><div className="tip-symbol">✳</div><div><strong>Un piccolo promemoria</strong><p>Registra le ore man mano: il riepilogo del progetto si aggiorna da sé.</p></div></section></aside></div>
         </>}
         {tab === "Clienti" && <ClientsPage clients={data.clients} projects={data.projects} onAdd={() => { setClientEditId(null); setDialog("client"); }} onOpen={client => { setClientSheetId(client.id); setDialog("client-detail"); }} onStatus={updateClient} search={search}/> }
-        {tab === "Progetti" && <ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} openProjectId={openProjectId} onOpened={clearOpenedProject} onChanged={refresh}/>}
+        {tab === "La mia giornata" && currentUser && <MyDay user={currentUser} search={search} onOpen={openNotificationProject} onChanged={refresh}/>}
+        {tab === "Progetti" && <ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} openProjectId={openProjectId} openTaskId={openTaskId} currentUser={currentUser!} onOpened={clearOpenedProject} onChanged={refresh}/>}
         {tab === "Impostazioni" && currentUser && <SettingsWorkspace user={currentUser} onUser={updateSettingsUser} onStudio={setStudio}/>}
         {tab === "Team" && currentUser?.role === "Admin" && <TeamWorkspace currentUser={currentUser}/> }
         {tab === "Lavorazioni" && <EntriesPage entries={viewEntries} projects={data.projects} clients={data.clients} onAdd={() => setDialog("entry")} onDelete={deleteEntry} onExport={exportCsv}/>}
