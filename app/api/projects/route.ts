@@ -1,0 +1,7 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getDatabase, updateDatabase } from "@/lib/store";
+import { requireSession, apiError } from "@/lib/http";
+const schema = z.object({ name: z.string().trim().min(2).max(100), clientId: z.string().min(1), status: z.enum(["In corso", "In attesa", "Completato"]) });
+export async function GET() { const denied = await requireSession(); if (denied) return denied; try { const db = await getDatabase(); return NextResponse.json({ projects: db.projects, clients: db.clients }); } catch (error) { return apiError(error); } }
+export async function POST(request: NextRequest) { const denied = await requireSession(); if (denied) return denied; const parsed = schema.safeParse(await request.json().catch(() => null)); if (!parsed.success) return NextResponse.json({ error: "Controlla i campi del progetto." }, { status: 400 }); try { const { result } = await updateDatabase(db => { if (!db.clients.some(c => c.id === parsed.data.clientId)) return null; const project = { id: crypto.randomUUID(), ...parsed.data, color: ["#d7e9e1", "#f1e0cc", "#e1e3f1", "#f1e8c9", "#f0dedd"][db.projects.length % 5], createdAt: new Date().toISOString() }; db.projects.unshift(project); return project; }); return result ? NextResponse.json({ project: result }, { status: 201 }) : NextResponse.json({ error: "Seleziona un cliente valido." }, { status: 400 }); } catch (error) { return apiError(error); } }

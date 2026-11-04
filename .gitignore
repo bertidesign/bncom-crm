@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+.env*
+!.env.example
+data/crm.json
+data/crm.json.tmp
+.DS_Store
+*.log

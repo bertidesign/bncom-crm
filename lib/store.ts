@@ -1,0 +1,54 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import type { Database } from "@/lib/types";
+
+const dataFile = path.join(process.env.CRM_DATA_DIR || path.join(process.cwd(), "data"), "crm.json");
+const demoToday = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" });
+function dayOffset(value: string, offset: number) {
+  const date = new Date(`${value}T12:00:00`); date.setDate(date.getDate() + offset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+const seed: Database = {
+  clients: [
+    { id: "c1", name: "Studio Marconi", company: "Studio Marconi", email: "ciao@studiomarconi.it", status: "Attivo", color: "#d5e5de", createdAt: "2026-10-08T09:00:00.000Z" },
+    { id: "c2", name: "Tenuta San Pietro", company: "Tenuta San Pietro", email: "info@tenutasanpietro.it", status: "In valutazione", color: "#ead9c8", createdAt: "2026-10-17T09:00:00.000Z" },
+    { id: "c3", name: "Casa Lume", company: "Casa Lume", email: "studio@casalume.it", status: "Attivo", color: "#dce0ef", createdAt: "2026-09-23T09:00:00.000Z" },
+    { id: "c4", name: "Futura Energia", company: "Futura Energia", email: "marketing@futuraenergia.it", status: "In pausa", color: "#eddfb7", createdAt: "2026-10-28T09:00:00.000Z" },
+    { id: "c5", name: "Osteria del Borgo", company: "Osteria del Borgo", email: "ciao@osteriadelborgo.it", status: "Attivo", color: "#e7d4d2", createdAt: "2026-10-31T09:00:00.000Z" }
+  ],
+  projects: [
+    { id: "p1", name: "Restyling sito web", clientId: "c1", status: "In corso", color: "#d7e9e1", createdAt: "2026-10-10T09:00:00.000Z" },
+    { id: "p2", name: "Campagna autunno", clientId: "c2", status: "In attesa", color: "#f1e0cc", createdAt: "2026-10-19T09:00:00.000Z" },
+    { id: "p3", name: "Identità visiva", clientId: "c3", status: "In corso", color: "#e1e3f1", createdAt: "2026-09-28T09:00:00.000Z" },
+    { id: "p4", name: "Landing page", clientId: "c4", status: "Completato", color: "#f1e8c9", createdAt: "2026-10-29T09:00:00.000Z" },
+    { id: "p5", name: "Piano editoriale", clientId: "c5", status: "In corso", color: "#f0dedd", createdAt: "2026-11-01T09:00:00.000Z" }
+  ],
+  entries: [
+    { id: "w1", projectId: "p1", date: demoToday, description: "Rifinitura della pagina servizi e allineamento dei componenti mobile.", hours: 2.5, person: "Andrea", createdAt: `${demoToday}T09:20:00.000Z` },
+    { id: "w2", projectId: "p3", date: demoToday, description: "Presentazione delle proposte logo e raccolta feedback.", hours: 1.5, person: "Marta", createdAt: `${demoToday}T11:10:00.000Z` },
+    { id: "w3", projectId: "p5", date: demoToday, description: "Calendario contenuti di novembre, prime bozze copy.", hours: 1, person: "Luca", createdAt: `${demoToday}T13:05:00.000Z` },
+    { id: "w4", projectId: "p1", date: dayOffset(demoToday, -1), description: "Wireframe area progetti e revisione struttura di navigazione.", hours: 3, person: "Andrea", createdAt: `${dayOffset(demoToday, -1)}T09:00:00.000Z` },
+    { id: "w5", projectId: "p2", date: dayOffset(demoToday, -1), description: "Ricerca riferimenti visivi per campagna stagionale.", hours: 2, person: "Marta", createdAt: `${dayOffset(demoToday, -1)}T13:00:00.000Z` },
+    { id: "w6", projectId: "p3", date: dayOffset(demoToday, -2), description: "Sviluppo del sistema tipografico e palette colore.", hours: 2.5, person: "Marta", createdAt: `${dayOffset(demoToday, -2)}T10:00:00.000Z` },
+    { id: "w7", projectId: "p5", date: dayOffset(demoToday, -2), description: "Revisione delle fotografie e selezione immagini.", hours: 1, person: "Luca", createdAt: `${dayOffset(demoToday, -2)}T14:00:00.000Z` }
+  ]
+};
+let writeQueue = Promise.resolve();
+
+async function ensureStore() {
+  await fs.mkdir(path.dirname(dataFile), { recursive: true });
+  try { await fs.access(dataFile); } catch { await fs.writeFile(dataFile, JSON.stringify(seed, null, 2)); }
+}
+export async function getDatabase(): Promise<Database> {
+  await ensureStore();
+  return JSON.parse(await fs.readFile(dataFile, "utf8")) as Database;
+}
+export async function updateDatabase<T>(mutator: (db: Database) => T | Promise<T>): Promise<{ db: Database; result: T }> {
+  let result!: T;
+  let db!: Database;
+  const operation = writeQueue.then(async () => { db = await getDatabase(); result = await mutator(db); const temp = `${dataFile}.tmp`; await fs.writeFile(temp, JSON.stringify(db, null, 2)); await fs.rename(temp, dataFile); });
+  writeQueue = operation.catch(() => {});
+  await operation;
+  return { db, result };
+}
+export { seed };

@@ -1,0 +1,7 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { getDatabase, updateDatabase } from "@/lib/store";
+import { requireSession, apiError } from "@/lib/http";
+const schema = z.object({ projectId: z.string().min(1), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), description: z.string().trim().min(5).max(500), hours: z.number().min(0.25).max(24), person: z.string().trim().min(2).max(60) });
+export async function GET() { const denied = await requireSession(); if (denied) return denied; try { const db = await getDatabase(); return NextResponse.json({ entries: db.entries, projects: db.projects, clients: db.clients }); } catch (error) { return apiError(error); } }
+export async function POST(request: NextRequest) { const denied = await requireSession(); if (denied) return denied; const parsed = schema.safeParse(await request.json().catch(() => null)); if (!parsed.success) return NextResponse.json({ error: "Controlla i dati della lavorazione." }, { status: 400 }); try { const { result } = await updateDatabase(db => { if (!db.projects.some(p => p.id === parsed.data.projectId)) return null; const entry = { id: crypto.randomUUID(), ...parsed.data, createdAt: new Date().toISOString() }; db.entries.unshift(entry); return entry; }); return result ? NextResponse.json({ entry: result }, { status: 201 }) : NextResponse.json({ error: "Seleziona un progetto valido." }, { status: 400 }); } catch (error) { return apiError(error); } }
