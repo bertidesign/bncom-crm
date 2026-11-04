@@ -58,6 +58,7 @@ export function Workspace() {
   const todayHours = data.entries.filter(e => e.date === today).reduce((sum, e) => sum + e.hours, 0);
   const weekHours = data.entries.filter(e => { const d = new Date(`${today}T12:00:00`); d.setDate(d.getDate() - (d.getDay() || 7) + 1); const monday = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; return e.date >= monday && e.date <= today; }).reduce((sum, e) => sum + e.hours, 0);
   const activeProjects = data.projects.filter(p => p.status === "In corso").length;
+  const clearOpenedProject = useCallback(() => setOpenProjectId(null), []);
 
   async function api(path: string, init: RequestInit) {
     const response = await fetch(path, { ...init, headers: { "Content-Type": "application/json", ...init.headers } });
@@ -80,7 +81,6 @@ export function Workspace() {
   if (authenticated === null || loading && authenticated !== false) return <div className="loading-screen"><div className="loading-mark">b.</div><span>Caricamento spazio di lavoro…</span></div>;
   if (!authenticated) return <Login onLogin={login} busy={busy} error={loginError} />;
   const nav: { label: Tab; icon: typeof LayoutDashboard }[] = [{ label: "Panoramica", icon: LayoutDashboard }, { label: "Clienti", icon: Users }, { label: "Progetti", icon: BriefcaseBusiness }, { label: "Lavorazioni", icon: FileText }, ...(currentUser?.role === "Admin" ? [{ label: "Team" as Tab, icon: Users }] : [])];
-  const clearOpenedProject = useCallback(() => setOpenProjectId(null), []);
   function openNotificationProject(projectId: string) { setTab("Progetti"); setOpenProjectId(projectId); }
   const selectedClient = clientSheetId ? data.clients.find(item => item.id === clientSheetId) : undefined;
   const editingClient = clientEditId ? data.clients.find(item => item.id === clientEditId) : undefined;
