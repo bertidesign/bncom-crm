@@ -64,7 +64,7 @@ button,input,select,textarea { font:inherit; } button { cursor:pointer; }
 input[type=checkbox],input[type=radio] { accent-color:var(--accent); }
 :focus-visible { outline-color:var(--accent); }
 ::selection { background:color-mix(in srgb,var(--accent) 24%,white);color:var(--ink); }
-.studio-brand-logo { width:40px;height:34px;object-fit:contain;flex:0 0 auto; }
+.studio-brand-logo { width:auto;max-width:180px;height:40px;object-fit:contain;object-position:left center;flex:0 1 auto; }
 .studio-brand-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-name { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-name small { overflow:hidden;text-overflow:ellipsis; }
