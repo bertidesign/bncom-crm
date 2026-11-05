@@ -19,7 +19,7 @@ const initials = (name: string) => name.split(/\s+/).slice(0, 2).map(part => par
 const dateLabel = (date?: string) => { if (!date) return "Senza scadenza"; const parsed = new Date(`${date}T12:00:00`); return Number.isNaN(parsed.getTime()) ? date : new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric" }).format(parsed); };
 function cx(...values: (string | false | null | undefined)[]) { return values.filter(Boolean).join(" "); }
 
-export function ProjectsWorkspace({ clients: initialClients, projects: initialProjects, entries, search, openProjectId, openTaskId, currentUser, onOpened, onChanged }: { clients: Client[]; projects: Project[]; entries: WorkEntry[]; search: string; openProjectId?: string | null; openTaskId?: string | null; currentUser: PublicUser; onOpened: () => void; onChanged: () => void }) {
+export function ProjectsWorkspace({ clients: initialClients, projects: initialProjects, entries, search, openProjectId, openTaskId, currentUser, onOpened, onChanged, boardOnly = false }: { clients: Client[]; projects: Project[]; entries: WorkEntry[]; search: string; openProjectId?: string | null; openTaskId?: string | null; currentUser: PublicUser; onOpened: () => void; onChanged: () => void; boardOnly?: boolean }) {
   const [data, setData] = useState<ProjectData>({ ...empty, clients: initialClients, projects: initialProjects });
   const [templateName, setTemplateName] = useState<string | null>(null);
   const [templateNotice, setTemplateNotice] = useState("");
@@ -67,6 +67,7 @@ export function ProjectsWorkspace({ clients: initialClients, projects: initialPr
   const boardTasks = data.tasks.filter(task => filtered.some(project => project.id === task.projectId));
   async function moveBoardTask(task: Task, status: TaskStatus) { if (status === task.status) return; await updateTaskStatus(task, status); }
 
+  if (boardOnly) return <ProjectKanban tasks={boardTasks} projects={data.projects} clients={data.clients} users={data.users} onOpen={(projectId, taskId) => { setSelectedId(projectId); setSelectedTaskId(taskId); setDetailTab("work"); }} onMove={moveBoardTask}/>;
   return <><ProjectKanban tasks={boardTasks} projects={data.projects} clients={data.clients} users={data.users} onOpen={(projectId, taskId) => { setSelectedId(projectId); setSelectedTaskId(taskId); setDetailTab("work"); }} onMove={moveBoardTask}/>
     <div className="page-heading"><div><div className="date-line">DAL BRIEF ALLA CONSEGNA</div><h1>Progetti<span className="heading-period">.</span></h1><p>Un posto semplice per coordinare reparti, scadenze e lavoro operativo.</p></div><button className="button-primary" onClick={newProject}><Plus size={17}/> Nuovo progetto</button></div>
     {error && !selected && !modal && <div className="error-banner" role="alert"><span>{error}</span><button onClick={() => setError("")} aria-label="Chiudi"><X size={16}/></button></div>}
