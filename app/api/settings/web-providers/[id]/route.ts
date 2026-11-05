@@ -1,0 +1,13 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin, apiError } from "@/lib/http";
+import { updateDatabase } from "@/lib/store";
+import { providerSchema } from "@/lib/web-provider-validation";
+import { providerNameKey } from "@/lib/web-providers";
+export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try { const auth = await requireAdmin(); if (auth.response) return auth.response; const body = await request.json().catch(() => null); const parsed = providerSchema.safeParse(body); if (!parsed.success || typeof body?.expectedUpdatedAt !== "string") return NextResponse.json({ error: "Controlla i dati e ricarica l’elenco prima di salvare." }, { status: 400 }); const { id } = await context.params;
+    const { result } = await updateDatabase(db => { const provider = db.webProviders.find(p => p.id === id); if (!provider) return { status: 404, error: "Fornitore non trovato." }; if (provider.updatedAt !== body.expectedUpdatedAt) return { status: 409, error: "Il fornitore è stato aggiornato da un altro amministratore. Ricarica l’elenco." }; if (db.webProviders.some(p => p.id !== id && providerNameKey(p.name) === providerNameKey(parsed.data.name))) return { status: 409, error: "Esiste già un fornitore con questo nome." }; const stamp = new Date(Math.max(Date.now(), Date.parse(provider.updatedAt) + 1)).toISOString(); Object.assign(provider, parsed.data, { updatedAt: stamp }); for (const service of db.clientServices.filter(s => s.department === "Web" && s.providerId === id)) { service.provider = provider.name; service.updatedAt = new Date(Math.max(Date.now(), Date.parse(service.updatedAt) + 1)).toISOString(); } return { status: 200, provider }; }); return NextResponse.json(result.status === 200 ? { provider: result.provider } : { error: result.error }, { status: result.status });
+  } catch (e) { return apiError(e); }
+}
+export async function DELETE(_: NextRequest, context: { params: Promise<{ id: string }> }) {
+  try { const auth = await requireAdmin(); if (auth.response) return auth.response; const { id } = await context.params; const { result } = await updateDatabase(db => { if (!db.webProviders.some(p => p.id === id)) return { status: 404, error: "Fornitore non trovato." }; if (db.clientServices.some(s => s.providerId === id)) return { status: 409, error: "Il fornitore è collegato a servizi. Archivialo per conservarne i riferimenti." }; db.webProviders = db.webProviders.filter(p => p.id !== id); return { status: 200 }; }); return NextResponse.json(result.status === 200 ? { ok: true } : { error: result.error }, { status: result.status }); } catch (e) { return apiError(e); }
+}

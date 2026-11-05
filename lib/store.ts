@@ -14,6 +14,7 @@ function dayOffset(value: string, offset: number) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 const seed: Database = {
+  webProviders: [],
   editorialPlans: [],
   clientDossiers: [], clientServices: [], clientPosts: [],
   templates: initialTemplates,
@@ -63,6 +64,7 @@ function inferDepartments(project: Partial<Project>): Department[] {
 export function normalizeDatabase(input: Partial<Database> | string): Database {
   const raw = typeof input === "string" ? JSON.parse(input) as Partial<Database> : input;
   const normalized: Database = {
+    webProviders: Array.isArray(raw.webProviders) ? raw.webProviders : [],
     editorialPlans: Array.isArray(raw.editorialPlans) ? raw.editorialPlans : [],
     clientDossiers: Array.isArray(raw.clientDossiers) ? raw.clientDossiers : [],
     clientServices: Array.isArray(raw.clientServices) ? raw.clientServices : [],

@@ -89,3 +89,12 @@ Al primo caricamento si crea un piano con un nome riconoscibile, ad esempio clie
 L’importazione selezionata è atomica; modifiche concorrenti rilevate dopo l’anteprima fermano l’intero salvataggio. Ripetere la creazione dello stesso piano non duplica i contenuti. Le righe escluse e quelle assenti dal nuovo file non vengono eliminate. Accesso riservato a Social e admin, con isolamento tra clienti. Il file originale rimane invariato; i contenuti non vengono pubblicati automaticamente sui social.
 
 Limiti: 20 fogli, 300 contenuti per file, 2.000 righe/100 colonne e 50.000 celle complessive, archivio decompresso entro 20 MB. File `.xls`, macro e documenti protetti vanno salvati prima come `.xlsx` non protetto. Le immagini incorporate non vengono importate e le formule non vengono eseguite; si usano i risultati già salvati e si segnalano quelli mancanti. Verifica automatica ripetibile con `npm run test:editorial` su workbook sintetici, senza file aziendali.
+
+
+### Fornitori Web
+
+Gli amministratori gestiscono **Impostazioni → Fornitori Web**: nome, sito, note, modifica, archiviazione e riattivazione. Il catalogo è condiviso con gli account autenticati; nei servizi Web il fornitore si sceglie dalla tendina. La voce Da definire consente di completare il servizio quando il fornitore non è ancora noto. Il pulsante di aggiornamento della tendina ricarica il catalogo senza scartare il modulo.
+
+Ogni servizio collegato conserva l’identificativo del fornitore: rinominarlo aggiorna anche il nome nei servizi e nei riepiloghi. Un fornitore archiviato resta nei servizi già collegati, ma non può essere assegnato ad altri servizi. La cancellazione è consentita soltanto in assenza di collegamenti; in caso contrario si usa l’archiviazione. Le modifiche al catalogo rilevano gli aggiornamenti concorrenti e i nomi duplicati.
+
+I vecchi nomi digitati a mano rimangono conservati e compaiono come nome precedente quando si modifica il servizio; si può associarli esplicitamente a un fornitore del catalogo. Non vengono creati fornitori automaticamente né sostituiti i riferimenti storici. Social e Grafica mantengono il loro campo libero.

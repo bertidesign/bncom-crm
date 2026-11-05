@@ -55,3 +55,10 @@ Implementati riconoscimento dei tre modelli disponibili, gestione di celle unite
 Verifiche locali: i tre file di riferimento producono rispettivamente 6, 4 e 3/12 contenuti nei relativi fogli. Eseguiti 32 controlli API per permessi, anteprima senza scritture, creazione, aggiornamento, protezione dai duplicati, conflitti atomici, isolamento tra clienti e cancellazione collegata. I test persistenti usano soltanto Excel sintetici e coprono blocchi, griglie, date 1900/1904, link, formule senza cache e limiti degli archivi. Browser desktop/mobile verificato su dati sintetici per nuova importazione e reimportazione. Nessun file o contenuto dei clienti viene aggiunto in produzione dalle prove.
 
 Rilascio compatibile con gli archivi precedenti: la nuova raccolta editorialPlans parte vuota. Il rollback del codice può lasciare i nuovi campi sul database senza alterare i record esistenti; non è prevista una migrazione distruttiva. In caso di regressione sul parser o sulla conferma, ripristinare il deployment precedente e mantenere gli import esistenti per l’analisi.
+
+
+## Catalogo fornitori Web
+
+Aggiunta la scheda amministrativa Fornitori Web nelle impostazioni, con CRUD, archiviazione, siti/note e conteggio dei servizi collegati. I servizi Web selezionano il fornitore per ID; i nomi precedenti rimangono preservati e sono associabili al catalogo. La rinomina aggiorna atomicamente i servizi; archiviazione e cancellazione rispettano i collegamenti. Il catalogo parte vuoto sugli archivi precedenti, senza migrazioni distruttive.
+
+Verifiche locali: build e 34 controlli API su permessi, URL, nomi duplicati, riferimenti non validi, rinomina, archiviazione, conservazione dei nomi precedenti e aggiornamenti concorrenti. Browser desktop/mobile sulla scheda impostazioni e selezione/salvataggio di un fornitore nei servizi Web. Nessun fornitore dimostrativo aggiunto in produzione.

@@ -28,7 +28,7 @@ function cx(...classes: (string | false | undefined)[]) { return classes.filter(
 export function Workspace({ clientId }: { clientId?: string }) {
   const router = useRouter();
   const [clientDirty, setClientDirty] = useState(false);
-  const [settingsSection, setSettingsSection] = useState<"appearance" | "profile">("appearance");
+  const [settingsSection, setSettingsSection] = useState<"appearance" | "profile" | "providers">("appearance");
   const [entryPerson, setEntryPerson] = useState("");
   const [studio, setStudio] = useState<StudioSettings>(defaultStudio);
   const initializedUser = useRef<string | null>(null);
@@ -59,7 +59,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
       if (initializedUser.current !== auth.user.id) {
         const params = new URL(window.location.href).searchParams; const requested = params.get("view");
         const valid = ["La mia giornata", "Panoramica", "Clienti", "Progetti", "Lavorazioni", "Impostazioni", ...(auth.user.role === "Admin" ? ["Team", "Modelli"] : [])];
-        setSettingsSection(params.get("section") === "profile" ? "profile" : "appearance");
+        setSettingsSection(params.get("section") === "providers" && auth.user.role === "Admin" ? "providers" : params.get("section") === "profile" ? "profile" : "appearance");
         setTab(clientId ? "Clienti" : requested && valid.includes(requested) ? requested as Tab : preferencesFor(auth.user.preferences).startPage);
         if (!clientId && requested === "Progetti") { setOpenProjectId(params.get("project")); setOpenTaskId(params.get("task")); }
         initializedUser.current = auth.user.id;
