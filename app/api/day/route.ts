@@ -9,7 +9,8 @@ export async function GET() {
     const projectIds = new Set(tasks.map(task => task.projectId));
     const projects = db.projects.filter(project => studioView || projectIds.has(project.id) || project.assigneeIds.includes(user.id) || project.departmentIds.some(department => user.departmentIds.includes(department)));
     const milestones = db.milestones.filter(item => studioView || item.assigneeIds.includes(user.id));
+    const services = db.clientServices.filter(service => studioView || projects.some(project => project.clientId === service.clientId && project.departmentIds.includes(service.department)));
     const workflow = Object.fromEntries(tasks.map(task => [task.id, { blockers: blockers(task, db.tasks).map(id => ({ id, title: db.tasks.find(item => item.id === id)?.title || "Prerequisito non disponibile" })), pendingHandoff: pendingHandoff(task) || null }]));
-    return NextResponse.json({ studioView, tasks, workflow, projects, milestones, clients: db.clients.filter(client => projects.some(project => project.clientId === client.id)), entries: db.entries.filter(entry => studioView || entry.userId === user.id) });
+    return NextResponse.json({ studioView, tasks, workflow, projects, milestones, services, clients: db.clients.filter(client => projects.some(project => project.clientId === client.id)), entries: db.entries.filter(entry => studioView || entry.userId === user.id) });
   } catch (error) { return apiError(error); }
 }
