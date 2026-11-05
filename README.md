@@ -63,6 +63,8 @@ Il passaggio di consegna trasferisce la responsabilità di un task aperto tra i 
 
 ### Schede clienti, servizi e calendario editoriale
 
+L’elenco Clienti include una ricerca visibile anche su mobile, per nome, azienda, referente, email, telefono e stato, con conteggio risultati e cancellazione del filtro.
+
 Ogni cliente ha una pagina dedicata con le schede **Riepilogo**, **Web**, **Social**, **Grafica** e **Progetti e ore**. L’anagrafica contiene anche referente, indirizzo, partita IVA, PEC e codice destinatario. Riepilogo mostra servizi attivi, rinnovi/consegne entro 60 giorni, contenuti Social da seguire e ore complessive.
 
 Ogni reparto gestisce i propri servizi con categoria, stato, fornitore, pacchetto, frequenza, avvio, prossima scadenza/consegna e note. Web include hosting, domini, manutenzione e licenze plugin, oltre a sito, CMS, staging, repository e riferimenti tecnici. Social raccoglie canali, strategia, pubblico, tono di voce, frequenza e collegamento al piano editoriale. Grafica raccoglie marchio, sorgenti, font, palette, formati, fornitori e specifiche produttive.
