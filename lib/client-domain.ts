@@ -23,3 +23,13 @@ export function emptyDossier(clientId: string): ClientDossier {
 export function clientPath(id: string, department?: Department) { return `/clienti/${encodeURIComponent(id)}${department ? `?reparto=${encodeURIComponent(department)}` : ""}`; }
 export function shortDate(value: string) { if (!value) return "Da definire"; const date = new Date(`${value}T12:00:00`); return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric" }).format(date); }
 export function dateOffset(value: string, offset: number) { const date = new Date(`${value}T12:00:00Z`); date.setUTCDate(date.getUTCDate() + offset); return date.toISOString().slice(0, 10); }
+
+// Keep distinct historic package details available as notes until the unified form is saved.
+export function serviceNotes(service: Pick<ClientService, "name" | "category" | "packageName" | "notes">) {
+  const compact = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("it-IT").replace(/[\s.,;:/_()–—-]+/g, " ").trim();
+  const withoutCategory = (value: string) => { const normalized = compact(value); const category = compact(service.category); return normalized.startsWith(category + " ") ? normalized.slice(category.length + 1) : normalized; };
+  const details = service.packageName?.trim(); const notes = service.notes || "";
+  if (!details || withoutCategory(details) === withoutCategory(service.name)) return notes;
+  const legacy = `Dettagli del pacchetto precedente: ${details}`;
+  return notes.includes(legacy) ? notes : [notes, legacy].filter(Boolean).join("\n\n");
+}

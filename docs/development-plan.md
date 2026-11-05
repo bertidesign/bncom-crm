@@ -62,3 +62,6 @@ Rilascio compatibile con gli archivi precedenti: la nuova raccolta editorialPlan
 Aggiunta la scheda amministrativa Fornitori Web nelle impostazioni, con CRUD, archiviazione, siti/note e conteggio dei servizi collegati. I servizi Web selezionano il fornitore per ID; i nomi precedenti rimangono preservati e sono associabili al catalogo. La rinomina aggiorna atomicamente i servizi; archiviazione e cancellazione rispettano i collegamenti. Il catalogo parte vuoto sugli archivi precedenti, senza migrazioni distruttive.
 
 Verifiche locali: build e 34 controlli API su permessi, URL, nomi duplicati, riferimenti non validi, rinomina, archiviazione, conservazione dei nomi precedenti e aggiornamenti concorrenti. Browser desktop/mobile sulla scheda impostazioni e selezione/salvataggio di un fornitore nei servizi Web. Nessun fornitore dimostrativo aggiunto in produzione.
+
+
+Semplificazione dei servizi: campo unico Servizio / pacchetto, rimozione della ripetizione nelle liste e nella dashboard, recupero idempotente nelle note dei dettagli storici distinti. Verificati duplicati con prefisso della categoria, dettagli aggiuntivi, note preesistenti e nomi Unicode.

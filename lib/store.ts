@@ -1,3 +1,4 @@
+import { serviceNotes } from "@/lib/client-domain";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { neon } from "@neondatabase/serverless";
@@ -82,6 +83,7 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     users: Array.isArray(raw.users) ? raw.users.map(user => user.role === "Admin" ? { ...user, departmentIds: [] } : user) : [],
     notifications: Array.isArray(raw.notifications) ? raw.notifications : []
   };
+  normalized.clientServices = normalized.clientServices.map(service => ({ ...service, notes: serviceNotes(service) }));
   normalized.projects = normalized.projects.map(project => ({ ...project, departmentProgress: Object.fromEntries(project.departmentIds.map(department => [department, project.departmentProgress?.[department] || { status: project.status === "Completato" ? "Completato" : "Da avviare" }])) }));
   if (!normalized.users.length) { const admin = bootstrapAdmin(); if (admin) normalized.users.push(admin); }
   normalized.users = normalized.users.map(user => ({ ...user, jobTitle: user.jobTitle || "", avatarUrl: user.avatarUrl || "", preferences: preferencesFor(user.preferences) }));

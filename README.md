@@ -98,3 +98,6 @@ Gli amministratori gestiscono **Impostazioni → Fornitori Web**: nome, sito, no
 Ogni servizio collegato conserva l’identificativo del fornitore: rinominarlo aggiorna anche il nome nei servizi e nei riepiloghi. Un fornitore archiviato resta nei servizi già collegati, ma non può essere assegnato ad altri servizi. La cancellazione è consentita soltanto in assenza di collegamenti; in caso contrario si usa l’archiviazione. Le modifiche al catalogo rilevano gli aggiornamenti concorrenti e i nomi duplicati.
 
 I vecchi nomi digitati a mano rimangono conservati e compaiono come nome precedente quando si modifica il servizio; si può associarli esplicitamente a un fornitore del catalogo. Non vengono creati fornitori automaticamente né sostituiti i riferimenti storici. Social e Grafica mantengono il loro campo libero.
+
+
+I servizi usano un solo campo **Servizio / pacchetto**. Il vecchio campo Pacchetto non è più mostrato separatamente nei moduli o nei riepiloghi. I dettagli storici diversi dal nome vengono conservati nelle note (senza duplicare quelli già presenti); le ripetizioni del nome, anche precedute dalla categoria, non vengono riproposte. I riferimenti precedenti rimangono compatibili con l’archivio e vengono consolidati al successivo salvataggio del servizio.
