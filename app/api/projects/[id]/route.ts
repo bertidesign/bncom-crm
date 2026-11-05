@@ -1,3 +1,4 @@
+import { publicUser } from "@/lib/password";
 import { pendingHandoff } from "@/lib/task-workflow";
 import { removeCollaboration } from "@/lib/collaboration";
 import { removeFileBlobs } from "@/lib/project-files";
@@ -11,7 +12,7 @@ const schema = z.object({ name: z.string().trim().min(2).max(100).optional(), cl
 function validAssignments(assigneeIds: string[], departmentIds: Department[], users: Awaited<ReturnType<typeof getDatabase>>["users"]) { return assigneeIds.every(id => users.some(user => user.id === id && user.active && user.departmentIds.some(department => departmentIds.includes(department)))); }
 export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   const denied = await requireSession(); if (denied) return denied;
-  try { const { id } = await context.params; const db = await getDatabase(); const project = db.projects.find(item => item.id === id); if (!project) return NextResponse.json({ error: "Progetto non trovato." }, { status: 404 }); return NextResponse.json({ project, client: db.clients.find(client => client.id === project.clientId), milestones: db.milestones.filter(item => item.projectId === id), tasks: db.tasks.filter(item => item.projectId === id), users: db.users.filter(user => user.active).map(({ passwordHash: _secret, ...user }) => user), entries: db.entries.filter(item => item.projectId === id) }); }
+  try { const { id } = await context.params; const db = await getDatabase(); const project = db.projects.find(item => item.id === id); if (!project) return NextResponse.json({ error: "Progetto non trovato." }, { status: 404 }); return NextResponse.json({ project, client: db.clients.find(client => client.id === project.clientId), milestones: db.milestones.filter(item => item.projectId === id), tasks: db.tasks.filter(item => item.projectId === id), users: db.users.filter(user => user.active).map(publicUser), entries: db.entries.filter(item => item.projectId === id) }); }
   catch (error) { return apiError(error); }
 }
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {

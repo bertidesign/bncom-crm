@@ -16,7 +16,7 @@
 
 ## Evoluzioni successive
 
-Attività ricorrenti, pianificazione del carico, budget e consuntivi, approvazioni del cliente e calendario editoriale. Queste funzioni costituiscono la roadmap dopo il rilascio operativo corrente.
+Attività ricorrenti, pianificazione del carico, budget e consuntivi, approvazioni del cliente e pubblicazione integrata dei contenuti social. Queste funzioni costituiscono la roadmap dopo il rilascio operativo corrente.
 
 ## Verifiche del rilascio
 
@@ -33,3 +33,16 @@ Verifica reale autorizzata completata il 4 novembre 2026 sul deploy `e4f3a2d`: c
 - Giornata personale con filtro Pronti, motivazione dei blocchi e coda delle consegne da accettare. Avvisi nel CRM con preferenza separata per passaggi e task pronti.
 
 Verifiche del secondo rilascio: build e TypeScript, test API su archivi locali separati (permessi, copie indipendenti, scadenze, cicli, prerequisiti, notifiche senza duplicati, accettazioni ripetute e annullamenti), controlli browser desktop/mobile su creazione da modello, editor e gestione consegne. Queste verifiche usano dati locali; nessuna fixture aggiuntiva viene creata nel CRM di produzione.
+
+
+## Terzo rilascio operativo — clienti e profili
+
+- Scheda cliente autonoma `/clienti/[id]` con Riepilogo, Web, Social, Grafica e Progetti e ore; anagrafica estesa con referente, indirizzo e riferimenti fiscali. Collegamenti diretti al reparto e avvisi sulle modifiche non salvate.
+- Servizi distinti dai progetti, con CRUD per reparto: stato, categoria, fornitore, pacchetto, frequenza, avvio, prossima data e note. Hosting, domini e licenze plugin hanno scorciatoie nel reparto Web. Nessun servizio viene dedotto automaticamente dai vecchi progetti.
+- Informazioni Web su sito, CMS, staging, repository e manutenzione; Social su canali, obiettivi, pubblico, tono, frequenza e piano editoriale; Grafica su linee guida, font, colori, sorgenti, stampa e produzione.
+- Calendario editoriale mensile e agenda, con CRUD dei contenuti, canale, formato, stato, data e ora, copy, creatività e referente. È uno strumento di pianificazione interna; la pubblicazione sui social resta esterna.
+- Panoramica dei servizi attivi suddivisa per reparto, filtro rinnovi/consegne entro 30 giorni e contenuti Social da seguire entro 7 giorni, compresi quelli scaduti.
+- Mansione professionale libera e foto per account, modificabili dal titolare o dall’admin. Le foto sono ridimensionate nel browser, conservate su Blob privato e lette tramite sessione; in Neon rimane il riferimento. L’admin resta un account di servizio senza reparti.
+- Consultazione condivisa; servizi e informazioni di reparto modificabili dai relativi membri e dagli amministratori. Le informazioni di reparto controllano la versione salvata per evitare sovrascritture concorrenti. Eliminare il cliente rimuove anche servizi, dossier e contenuti editoriali.
+
+Verifiche: 51 controlli API su archivio locale (validazioni, permessi, versioni concorrenti, riepiloghi e cancellazioni), controlli browser desktop/mobile e test con SDK Blob simulato per foto private, streaming autenticato, sostituzioni, conflitti e pulizia dopo commit fallito. Nessun dato dimostrativo aggiunto in produzione; il nuovo upload delle foto non è stato provato con scritture sul Blob reale.

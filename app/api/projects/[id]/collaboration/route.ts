@@ -9,7 +9,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   try { const user = await getCurrentUser(); if (!user) return NextResponse.json({ error: "Accedi di nuovo." }, { status: 401 }); const { id } = await context.params; const db = await getDatabase(); const taskId = request.nextUrl.searchParams.get("taskId") || undefined;
     if (!validContext(db, id, taskId)) return NextResponse.json({ error: "Progetto o task non trovato." }, { status: 404 });
     const matches = (item: { projectId: string; taskId?: string }) => item.projectId === id && (taskId ? item.taskId === taskId : !item.taskId);
-    return NextResponse.json({ comments: db.comments.filter(matches), files: db.files.filter(matches).map(({ blobPath: _path, ...file }) => file), users: db.users.filter(user => user.active && user.role === "Collaboratore").map(user => ({ id: user.id, name: user.name, departmentIds: user.departmentIds })) });
+    return NextResponse.json({ comments: db.comments.filter(matches), files: db.files.filter(matches).map(({ blobPath: _path, ...file }) => file), users: db.users.filter(user => user.active && user.role === "Collaboratore").map(user => ({ id: user.id, name: user.name, avatarUrl: user.avatarUrl, jobTitle: user.jobTitle, departmentIds: user.departmentIds })) });
   } catch (error) { return apiError(error); }
 }
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {

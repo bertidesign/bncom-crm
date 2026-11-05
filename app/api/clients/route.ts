@@ -1,16 +1,10 @@
+import { generalClientSchema } from "@/lib/client-validation";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDatabase, updateDatabase } from "@/lib/store";
 import { requireSession, apiError } from "@/lib/http";
 
-const schema = z.object({
-  name: z.string().trim().min(2).max(80),
-  company: z.string().trim().min(2).max(100),
-  email: z.string().trim().email().max(120),
-  phone: z.string().trim().max(40).optional().default(""),
-  notes: z.string().trim().max(2000).optional().default(""),
-  status: z.enum(["Attivo", "In valutazione", "In pausa", "Concluso"]),
-});
+const schema = generalClientSchema;
 
 export async function GET() {
   const denied = await requireSession(); if (denied) return denied;

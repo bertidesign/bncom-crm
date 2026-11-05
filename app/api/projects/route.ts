@@ -1,3 +1,4 @@
+import { publicUser } from "@/lib/password";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDatabase, updateDatabase } from "@/lib/store";
@@ -8,7 +9,7 @@ const schema = z.object({ templateId: z.string().optional(), startDate: z.string
 function validAssignments(assigneeIds: string[], departmentIds: Department[], users: Awaited<ReturnType<typeof getDatabase>>["users"]) { return assigneeIds.every(id => users.some(user => user.id === id && user.active && user.departmentIds.some(department => departmentIds.includes(department)))); }
 export async function GET() {
   const denied = await requireSession(); if (denied) return denied;
-  try { const db = await getDatabase(); return NextResponse.json({ projects: db.projects, clients: db.clients, milestones: db.milestones, tasks: db.tasks, templates: db.templates, users: db.users.filter(user => user.active).map(({ passwordHash: _secret, ...user }) => user) }); }
+  try { const db = await getDatabase(); return NextResponse.json({ projects: db.projects, clients: db.clients, milestones: db.milestones, tasks: db.tasks, templates: db.templates, users: db.users.filter(user => user.active).map(publicUser) }); }
   catch (error) { return apiError(error); }
 }
 export async function POST(request: NextRequest) {

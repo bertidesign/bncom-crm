@@ -10,7 +10,7 @@ export function verifyPassword(password: string, stored: string) {
   const actual = scryptSync(password, salt, expected.length);
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
-export function publicUser<T extends { passwordHash: string }>(user: T) {
-  const { passwordHash: _passwordHash, ...safe } = user;
+export function publicUser<T extends { passwordHash: string; avatarPath?: string }>(user: T) {
+  const { passwordHash: _passwordHash, avatarPath: _avatarPath, ...safe } = user;
   return safe;
 }

@@ -32,3 +32,15 @@ export async function removeLogo(path?: string) {
   if (!path || !isLogoPath(path)) return;
   try { await del(path, credentials()); } catch { console.error("Impossibile rimuovere il precedente marchio da Blob."); }
 }
+
+export function isAvatarPath(path: string) { return /^crm\/avatars\/[a-f0-9-]+\.(png|jpg|webp)$/.test(path); }
+export async function uploadAvatar(image: NonNullable<ReturnType<typeof decodeLogo>>) {
+  const version = crypto.randomUUID();
+  const blob = await put(`crm/avatars/${version}.${image.extension}`, image.data, { ...credentials(), access: "private", contentType: image.contentType, addRandomSuffix: false });
+  return { path: blob.pathname, version };
+}
+export async function readAvatar(path: string) { return isAvatarPath(path) ? get(path, { ...credentials(), access: "private" }) : null; }
+export async function removeAvatar(path?: string) {
+  if (!path || !isAvatarPath(path)) return;
+  try { await del(path, credentials()); } catch { console.error("Rimozione della foto profilo da Blob non completata."); }
+}

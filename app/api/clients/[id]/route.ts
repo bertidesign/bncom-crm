@@ -1,3 +1,5 @@
+import { emptyDossier } from "@/lib/client-domain";
+import { generalClientSchema } from "@/lib/client-validation";
 import { removeCollaboration } from "@/lib/collaboration";
 import { removeFileBlobs } from "@/lib/project-files";
 import { NextRequest, NextResponse } from "next/server";
@@ -5,14 +7,7 @@ import { z } from "zod";
 import { getDatabase, updateDatabase } from "@/lib/store";
 import { requireSession, apiError } from "@/lib/http";
 
-const patchSchema = z.object({
-  name: z.string().trim().min(2).max(80).optional(),
-  company: z.string().trim().min(2).max(100).optional(),
-  email: z.string().trim().email().max(120).optional(),
-  phone: z.string().trim().max(40).optional(),
-  notes: z.string().trim().max(2000).optional(),
-  status: z.enum(["Attivo", "In valutazione", "In pausa", "Concluso"]).optional(),
-}).refine(value => Object.keys(value).length > 0, "Inserisci almeno un campo da aggiornare.");
+const patchSchema = generalClientSchema.partial().refine(value => Object.keys(value).length > 0);
 
 export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
   const denied = await requireSession(); if (denied) return denied;
@@ -23,7 +18,7 @@ export async function GET(_: NextRequest, context: { params: Promise<{ id: strin
     const projects = db.projects.filter(project => project.clientId === id);
     const projectIds = new Set(projects.map(project => project.id));
     const entries = db.entries.filter(entry => projectIds.has(entry.projectId)).sort((a, b) => b.date.localeCompare(a.date));
-    return NextResponse.json({ client, projects, entries });
+    return NextResponse.json({ client, projects, entries, dossier: db.clientDossiers.find(item => item.clientId === id) || emptyDossier(id), services: db.clientServices.filter(item => item.clientId === id), posts: db.clientPosts.filter(item => item.clientId === id) });
   } catch (error) { return apiError(error); }
 }
 
@@ -59,6 +54,9 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       db.notifications = db.notifications.filter(item => !projectIds.has(item.projectId));
       db.entries = db.entries.filter(entry => !projectIds.has(entry.projectId));
       db.projects = db.projects.filter(project => project.clientId !== id);
+      db.clientDossiers = db.clientDossiers.filter(item => item.clientId !== id);
+      db.clientServices = db.clientServices.filter(item => item.clientId !== id);
+      db.clientPosts = db.clientPosts.filter(item => item.clientId !== id);
       db.clients = db.clients.filter(item => item.id !== id);
       return { missing: false, blocked: false, projects: projectIds.size, entries, paths };
     });

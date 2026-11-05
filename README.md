@@ -59,3 +59,18 @@ Gli amministratori gestiscono la libreria **Modelli**, disponibile a tutti alla 
 Un task può indicare prerequisiti nello stesso progetto: i cicli e i collegamenti a progetti diversi vengono rifiutati. Avvio e completamento sono vincolati alla conclusione dei prerequisiti. Per riaprire un task completato occorre prima riportare a Da fare i successori già avviati; per eliminare un prerequisito occorre prima rimuoverne i collegamenti. Le milestone con task referenziati da altre attività sono protette dalla cancellazione. La giornata evidenzia i motivi del blocco e permette di filtrare i task pronti.
 
 Il passaggio di consegna trasferisce la responsabilità di un task aperto tra i reparti coinvolti. Mittente, reparto responsabile e admin possono avviarlo; il destinatario deve essere un collaboratore attivo del reparto scelto. Senza persone specificate il passaggio compare nella coda del reparto e il primo collaboratore che lo accetta diventa assegnatario. La presa in carico attende i prerequisiti e registra chi l'ha eseguita; il task passa In corso, mantenendo un eventuale blocco manuale. Mittente e admin possono annullare una consegna ancora in attesa. Le note restano nella discussione e lo storico registra invio, accettazione e annullamento. La preferenza **Passaggi di consegna e task pronti** gestisce gli avvisi diretti, separatamente dalle notifiche di stato.
+
+
+### Schede clienti, servizi e calendario editoriale
+
+Ogni cliente ha una pagina dedicata con le schede **Riepilogo**, **Web**, **Social**, **Grafica** e **Progetti e ore**. L’anagrafica contiene anche referente, indirizzo, partita IVA, PEC e codice destinatario. Riepilogo mostra servizi attivi, rinnovi/consegne entro 60 giorni, contenuti Social da seguire e ore complessive.
+
+Ogni reparto gestisce i propri servizi con categoria, stato, fornitore, pacchetto, frequenza, avvio, prossima scadenza/consegna e note. Web include hosting, domini, manutenzione e licenze plugin, oltre a sito, CMS, staging, repository e riferimenti tecnici. Social raccoglie canali, strategia, pubblico, tono di voce, frequenza e collegamento al piano editoriale. Grafica raccoglie marchio, sorgenti, font, palette, formati, fornitori e specifiche produttive.
+
+Il calendario Social permette di creare, modificare ed eliminare contenuti, con vista mensile o elenco, data e ora Europe/Rome, stato, copy, link alle creatività e referente per l’approvazione. Lo stato Programmato è una registrazione interna: il CRM non pubblica direttamente sui social. La Panoramica riepiloga i servizi attivi per reparto e i contenuti da seguire.
+
+Tutti gli account attivi possono consultare le schede; le informazioni e i servizi di reparto sono modificabili soltanto dai membri del reparto o dagli amministratori. Il salvataggio delle informazioni di reparto rileva eventuali aggiornamenti concorrenti. Le vecchie anagrafiche restano valide e iniziano senza servizi o piani editoriali dedotti dai progetti.
+
+### Foto e mansione professionale
+
+In **Profilo e accesso** ogni persona può impostare una mansione libera (ad esempio Web Developer) e caricare/rimuovere la propria foto. L’admin può farlo anche da **Team → Modifica persona**. Mansione e ruolo di accesso sono campi separati; l’admin rimane senza reparti. Le foto PNG/JPEG/WebP fino a 5 MB vengono ridimensionate prima dell’upload e salvate privatamente in `store-crm`, con lo stesso token Blob già configurato. L’endpoint `/api/users/[id]/avatar` richiede una sessione per la lettura e permette modifiche soltanto al titolare o all’admin. Nessun nuovo servizio o variabile Vercel è richiesto.
