@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ArrowDownToLine, ArrowRight, BriefcaseBusiness, CalendarDays, CalendarCheck2, Check, ChevronDown, CircleHelp, Clock3, Command, FileText, LayoutDashboard, Layers3, LogOut, Mail, MoreHorizontal, Pencil, Phone, Plus, Search, Settings2, Trash2, Users, X } from "lucide-react";
+import { ArrowDownToLine, ArrowRight, BriefcaseBusiness, CalendarDays, CalendarCheck2, Check, ChevronDown, CircleHelp, Clock3, Command, FileText, LayoutDashboard, Layers3, ListTodo, LogOut, Mail, MoreHorizontal, Pencil, Phone, Plus, Search, Settings2, Trash2, Users, X } from "lucide-react";
 import type { Client, ClientStatus, Project, ProjectStatus, PublicUser, WorkEntry } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/user-avatar";
@@ -15,7 +15,7 @@ import { ProjectsWorkspace } from "@/components/projects-workspace";
 import { TeamWorkspace } from "@/components/team-workspace";
 import { NotificationsMenu } from "@/components/notifications-menu";
 
-type Tab = "La mia giornata" | "Panoramica" | "Clienti" | "Progetti" | "Lavorazioni" | "Team" | "Impostazioni" | "Modelli";
+type Tab = "La mia giornata" | "Panoramica" | "Clienti" | "Progetti" | "Board" | "Lavorazioni" | "Team" | "Impostazioni" | "Modelli";
 type Data = { clients: Client[]; projects: Project[]; entries: WorkEntry[] };
 const blank: Data = { clients: [], projects: [], entries: [] };
 const today = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" });
@@ -58,7 +58,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
       if (!auth.authenticated) { setCurrentUser(null); setAuthenticated(false); setLoading(false); return; }
       if (initializedUser.current !== auth.user.id) {
         const params = new URL(window.location.href).searchParams; const requested = params.get("view");
-        const valid = ["La mia giornata", "Panoramica", "Clienti", "Progetti", "Lavorazioni", "Impostazioni", ...(auth.user.role === "Admin" ? ["Team", "Modelli"] : [])];
+        const valid = ["La mia giornata", "Panoramica", "Clienti", "Progetti", "Board", "Lavorazioni", "Impostazioni", ...(auth.user.role === "Admin" ? ["Team", "Modelli"] : [])];
         setSettingsSection(params.get("section") === "providers" && auth.user.role === "Admin" ? "providers" : params.get("section") === "profile" ? "profile" : "appearance");
         setTab(clientId ? "Clienti" : requested && valid.includes(requested) ? requested as Tab : preferencesFor(auth.user.preferences).startPage);
         if (!clientId && requested === "Progetti") { setOpenProjectId(params.get("project")); setOpenTaskId(params.get("task")); }
@@ -121,7 +121,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
   }
   if (authenticated === null || loading && authenticated !== false) return <div className="loading-screen"><div className="loading-mark">b.</div><span>Caricamento spazio di lavoro…</span></div>;
   if (!authenticated) return <Login onLogin={login} busy={busy} error={loginError} studio={studio} />;
-  const nav: { label: Tab; icon: typeof LayoutDashboard }[] = [{ label: "La mia giornata", icon: CalendarCheck2 }, { label: "Panoramica", icon: LayoutDashboard }, { label: "Clienti", icon: Users }, { label: "Progetti", icon: BriefcaseBusiness }, { label: "Lavorazioni", icon: FileText }, ...(currentUser?.role === "Admin" ? [{ label: "Team" as Tab, icon: Users }, { label: "Modelli" as Tab, icon: Layers3 }] : [])];
+  const nav: { label: Tab; icon: typeof LayoutDashboard }[] = [{ label: "La mia giornata", icon: CalendarCheck2 }, { label: "Panoramica", icon: LayoutDashboard }, { label: "Clienti", icon: Users }, { label: "Progetti", icon: BriefcaseBusiness }, { label: "Board", icon: ListTodo }, { label: "Lavorazioni", icon: FileText }, ...(currentUser?.role === "Admin" ? [{ label: "Team" as Tab, icon: Users }, { label: "Modelli" as Tab, icon: Layers3 }] : [])];
   return <div className="app-shell">
     <aside className={cx("sidebar", mobileNav && "sidebar-open")}>
       <div className="brand"><StudioBrand studio={studio}/><button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Chiudi menu"><X size={18}/></button></div>
@@ -149,6 +149,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
         {tab === "Clienti" && (clientId && currentUser ? <ClientPage key={clientId} clientId={clientId} user={currentUser} onOpenProject={openNotificationProject} onChanged={refresh} onDirtyChange={setClientDirty}/> : <ClientsPage clients={data.clients} projects={data.projects} onAdd={() => { setError(""); setDialog("client"); }} onOpen={client => openClient(client.id)} onStatus={updateClient} search={search} onSearch={setSearch}/>)}
         {tab === "La mia giornata" && currentUser && <MyDay user={currentUser} search={search} onOpen={openNotificationProject} onChanged={refresh}/>}
         {tab === "Progetti" && <ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} openProjectId={openProjectId} openTaskId={openTaskId} currentUser={currentUser!} onOpened={clearOpenedProject} onChanged={refresh}/>}
+        {tab === "Board" && <ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} currentUser={currentUser!} onOpened={() => undefined} onChanged={refresh}/>}
         {tab === "Modelli" && currentUser?.role === "Admin" && <TemplatesWorkspace search={search}/>}
         {tab === "Impostazioni" && currentUser && <SettingsWorkspace initialSection={settingsSection} user={currentUser} onUser={updateSettingsUser} onStudio={setStudio}/>}
         {tab === "Team" && currentUser?.role === "Admin" && <TeamWorkspace currentUser={currentUser} onUserChanged={updateSettingsUser}/> }
