@@ -46,3 +46,12 @@ Verifiche del secondo rilascio: build e TypeScript, test API su archivi locali s
 - Consultazione condivisa; servizi e informazioni di reparto modificabili dai relativi membri e dagli amministratori. Le informazioni di reparto controllano la versione salvata per evitare sovrascritture concorrenti. Eliminare il cliente rimuove anche servizi, dossier e contenuti editoriali.
 
 Verifiche: 51 controlli API su archivio locale (validazioni, permessi, versioni concorrenti, riepiloghi e cancellazioni), controlli browser desktop/mobile e test con SDK Blob simulato per foto private, streaming autenticato, sostituzioni, conflitti e pulizia dopo commit fallito. Nessun dato dimostrativo aggiunto in produzione; il nuovo upload delle foto non è stato provato con scritture sul Blob reale.
+
+
+## Importazione dei piani editoriali Excel
+
+Implementati riconoscimento dei tre modelli disponibili, gestione di celle unite e testi di continuazione, preview con selezione dei fogli, correzione campi e conferma esplicita. I piani identificano gli import successivi; le righe già presenti sono escluse inizialmente e possono essere aggiornate dopo confronto, con controllo della versione e commit atomico. Nessuna cancellazione implicita delle righe mancanti.
+
+Verifiche locali: i tre file di riferimento producono rispettivamente 6, 4 e 3/12 contenuti nei relativi fogli. Eseguiti 32 controlli API per permessi, anteprima senza scritture, creazione, aggiornamento, protezione dai duplicati, conflitti atomici, isolamento tra clienti e cancellazione collegata. I test persistenti usano soltanto Excel sintetici e coprono blocchi, griglie, date 1900/1904, link, formule senza cache e limiti degli archivi. Browser desktop/mobile verificato su dati sintetici per nuova importazione e reimportazione. Nessun file o contenuto dei clienti viene aggiunto in produzione dalle prove.
+
+Rilascio compatibile con gli archivi precedenti: la nuova raccolta editorialPlans parte vuota. Il rollback del codice può lasciare i nuovi campi sul database senza alterare i record esistenti; non è prevista una migrazione distruttiva. In caso di regressione sul parser o sulla conferma, ripristinare il deployment precedente e mantenere gli import esistenti per l’analisi.

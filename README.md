@@ -74,3 +74,16 @@ Tutti gli account attivi possono consultare le schede; le informazioni e i servi
 ### Foto e mansione professionale
 
 In **Profilo e accesso** ogni persona può impostare una mansione libera (ad esempio Web Developer) e caricare/rimuovere la propria foto. L’admin può farlo anche da **Team → Modifica persona**. Mansione e ruolo di accesso sono campi separati; l’admin rimane senza reparti. Le foto PNG/JPEG/WebP fino a 5 MB vengono ridimensionate prima dell’upload e salvate privatamente in `store-crm`, con lo stesso token Blob già configurato. L’endpoint `/api/users/[id]/avatar` richiede una sessione per la lettura e permette modifiche soltanto al titolare o all’admin. Nessun nuovo servizio o variabile Vercel è richiesto.
+
+
+### Importazione Excel del piano editoriale
+
+Da **Clienti → scheda cliente → Social → Calendario editoriale → Importa Excel** si carica un `.xlsx` fino a 4 MB. Il parser riconosce i modelli BNCom con Post/Argomento/Immagine, blocchi di celle unite e calendario settimanale con Post 1/Post 2/Storia. Ricompone i testi su più righe, conserva immagini consigliate e zone nelle note, ignora le posizioni vuote e distingue i contenuti Storia. Le date Excel sono lette nei sistemi 1900 e 1904; i soli riferimenti settimanali restano nelle note e non diventano giorni inventati.
+
+L’anteprima permette di scegliere i fogli, assegnare un canale e correggere titolo, testo, note, data, ora, formato e stato. Il primo foglio compilato è selezionato inizialmente; gli altri richiedono una scelta esplicita. Le idee possono restare senza data; Programmato/Pubblicato richiedono una data valida. Il caricamento per l’anteprima non scrive sul database e non conserva il file originale su Blob.
+
+Al primo caricamento si crea un piano con un nome riconoscibile, ad esempio cliente e mese. Per il file restituito dal cliente si sceglie lo stesso piano: i contenuti già importati sono esclusi inizialmente, con confronto dei valori attuali, e ogni aggiornamento va selezionato. Numeri Post, nome dei fogli e ordine delle righe vanno mantenuti per conservare i riferimenti. Per i blocchi si usa il numero Post, per gli elenchi datati il riferimento di riga, per le griglie settimanali il periodo e la colonna. Se il cliente cambia questi riferimenti occorre verificare l’anteprima: il parser non tenta abbinamenti approssimativi per titolo.
+
+L’importazione selezionata è atomica; modifiche concorrenti rilevate dopo l’anteprima fermano l’intero salvataggio. Ripetere la creazione dello stesso piano non duplica i contenuti. Le righe escluse e quelle assenti dal nuovo file non vengono eliminate. Accesso riservato a Social e admin, con isolamento tra clienti. Il file originale rimane invariato; i contenuti non vengono pubblicati automaticamente sui social.
+
+Limiti: 20 fogli, 300 contenuti per file, 2.000 righe/100 colonne e 50.000 celle complessive, archivio decompresso entro 20 MB. File `.xls`, macro e documenti protetti vanno salvati prima come `.xlsx` non protetto. Le immagini incorporate non vengono importate e le formule non vengono eseguite; si usano i risultati già salvati e si segnalano quelli mancanti. Verifica automatica ripetibile con `npm run test:editorial` su workbook sintetici, senza file aziendali.

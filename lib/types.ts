@@ -1,3 +1,4 @@
+import type { EditorialPlan } from "@/lib/editorial-import-types";
 import type { ClientDossier, ClientService, ClientPost } from "@/lib/client-domain";
 import type { StudioSettings, UserPreferences } from "@/lib/settings";
 export const departments = ["Grafica", "Web", "Social"] as const;
@@ -23,5 +24,5 @@ export type PendingUpload = { id: string; projectId: string; taskId?: string; gr
 export type TemplateMilestone = { key: string; title: string; description: string; dueOffsetDays: number };
 export type TemplateTask = { key: string; title: string; description: string; milestoneKey: string; departmentId?: Department; dueOffsetDays: number; dependsOnKeys: string[] };
 export type ProjectTemplate = { id: string; name: string; description: string; departmentIds: Department[]; milestones: TemplateMilestone[]; tasks: TemplateTask[]; createdAt: string; updatedAt: string };
-export type Database = { clientDossiers: ClientDossier[]; clientServices: ClientService[]; clientPosts: ClientPost[]; templates: ProjectTemplate[]; comments: ProjectComment[]; files: ProjectFile[]; pendingUploads: PendingUpload[]; studio: StudioSettings; clients: Client[]; projects: Project[]; entries: WorkEntry[]; milestones: Milestone[]; tasks: Task[]; users: TeamUser[]; notifications: Notification[] };
+export type Database = { editorialPlans: EditorialPlan[]; clientDossiers: ClientDossier[]; clientServices: ClientService[]; clientPosts: ClientPost[]; templates: ProjectTemplate[]; comments: ProjectComment[]; files: ProjectFile[]; pendingUploads: PendingUpload[]; studio: StudioSettings; clients: Client[]; projects: Project[]; entries: WorkEntry[]; milestones: Milestone[]; tasks: Task[]; users: TeamUser[]; notifications: Notification[] };
 export type PublicUser = Omit<TeamUser, "passwordHash" | "avatarPath">;

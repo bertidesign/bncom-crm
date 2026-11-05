@@ -54,6 +54,7 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       db.notifications = db.notifications.filter(item => !projectIds.has(item.projectId));
       db.entries = db.entries.filter(entry => !projectIds.has(entry.projectId));
       db.projects = db.projects.filter(project => project.clientId !== id);
+      db.editorialPlans = db.editorialPlans.filter(item => item.clientId !== id);
       db.clientDossiers = db.clientDossiers.filter(item => item.clientId !== id);
       db.clientServices = db.clientServices.filter(item => item.clientId !== id);
       db.clientPosts = db.clientPosts.filter(item => item.clientId !== id);

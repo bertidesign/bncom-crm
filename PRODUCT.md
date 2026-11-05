@@ -24,11 +24,11 @@ Una vista di lavoro condivisa che collega le attività giornaliere ai progetti e
 
 ## Capabilities and Constraints
 
-MVP: gestione clienti, stati cliente, progetti, lavorazioni con data, descrizione, persona e durata; autenticazione semplice. Produzione su Vercel con Neon per dati e preferenze, Blob privato store-crm per marchio e allegati. Account individuali e amministratore di servizio senza reparti; progetti multi reparto, milestone, task, giornata personale, commenti, menzioni e file versionati, modelli riutilizzabili, prerequisiti dei task e passaggi di consegna tra reparti. Archivio JSON disponibile soltanto per sviluppo locale. Schede clienti per reparto con servizi attivi e rinnovi, informazioni tecniche e creative, calendario editoriale interno e riepilogo nella panoramica. Profili con mansione libera e foto privata. Modello previsto per evoluzioni successive.
+MVP: gestione clienti, stati cliente, progetti, lavorazioni con data, descrizione, persona e durata; autenticazione semplice. Produzione su Vercel con Neon per dati e preferenze, Blob privato store-crm per marchio e allegati. Account individuali e amministratore di servizio senza reparti; progetti multi reparto, milestone, task, giornata personale, commenti, menzioni e file versionati, modelli riutilizzabili, prerequisiti dei task e passaggi di consegna tra reparti. Archivio JSON disponibile soltanto per sviluppo locale. Schede clienti per reparto con servizi attivi e rinnovi, informazioni tecniche e creative, calendario editoriale interno con importazione dei piani Excel BNCom, anteprima e aggiornamenti selettivi, e riepilogo nella panoramica. Profili con mansione libera e foto privata. Modello previsto per evoluzioni successive.
 
 ## Evidence on Hand
 
-Nessun dato reale, marchio o contenuto aziendale fornito. Eventuali record iniziali sono dimostrativi e sintetici.
+Sono disponibili tre modelli Excel reali di piano editoriale per verificare localmente il parser. I record iniziali e i fixture dei test sono dimostrativi e sintetici; i file dei clienti non fanno parte del repository.
 
 ## Product Principles
 
