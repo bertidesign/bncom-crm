@@ -44,12 +44,14 @@ export function Workspace({ clientId }: { clientId?: string }) {
   const [loginError, setLoginError] = useState("");
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState<"Oggi" | "Questa settimana" | "Tutto il periodo">("Oggi");
+  const [selectedDate, setSelectedDate] = useState(today);
   const [dialog, setDialog] = useState<"entry" | "client" | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
   const [busy, setBusy] = useState(false);
   const [me, setMe] = useState("Andrea");
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [tab]);
+  useEffect(() => { const button = document.querySelector<HTMLButtonElement>(".top-date"); const input = document.querySelector<HTMLInputElement>(".workspace-date-input"); if (!button || !input) return; const open = () => input.showPicker?.(); button.addEventListener("click", open); return () => button.removeEventListener("click", open); }, [authenticated]);
 
   const refresh = useCallback(async () => {
     if (initializedUser.current === null) setLoading(true); setError("");
@@ -77,11 +79,11 @@ export function Workspace({ clientId }: { clientId?: string }) {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const viewEntries = useMemo(() => {
-    const start = new Date(`${today}T12:00:00`); const weekday = start.getDay() || 7; start.setDate(start.getDate() - weekday + 1); const monday = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
-    return data.entries.filter(entry => period === "Oggi" ? entry.date === today : period === "Questa settimana" ? entry.date >= monday && entry.date <= today : true).filter(entry => { const project = data.projects.find(p => p.id === entry.projectId); const client = project && data.clients.find(c => c.id === project.clientId); return `${entry.description} ${entry.person} ${project?.name} ${client?.name}`.toLowerCase().includes(search.toLowerCase()); });
-  }, [data, period, search]);
-  const todayHours = data.entries.filter(e => e.date === today).reduce((sum, e) => sum + e.hours, 0);
-  const weekHours = data.entries.filter(e => { const d = new Date(`${today}T12:00:00`); d.setDate(d.getDate() - (d.getDay() || 7) + 1); const monday = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; return e.date >= monday && e.date <= today; }).reduce((sum, e) => sum + e.hours, 0);
+    const start = new Date(`${selectedDate}T12:00:00`); const weekday = start.getDay() || 7; start.setDate(start.getDate() - weekday + 1); const monday = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
+    return data.entries.filter(entry => period === "Oggi" ? entry.date === selectedDate : period === "Questa settimana" ? entry.date >= monday && entry.date <= selectedDate : true).filter(entry => { const project = data.projects.find(p => p.id === entry.projectId); const client = project && data.clients.find(c => c.id === project.clientId); return `${entry.description} ${entry.person} ${project?.name} ${client?.name}`.toLowerCase().includes(search.toLowerCase()); });
+  }, [data, period, search, selectedDate]);
+  const todayHours = data.entries.filter(e => e.date === selectedDate).reduce((sum, e) => sum + e.hours, 0);
+  const weekHours = data.entries.filter(e => { const d = new Date(`${selectedDate}T12:00:00`); d.setDate(d.getDate() - (d.getDay() || 7) + 1); const monday = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; return e.date >= monday && e.date <= selectedDate; }).reduce((sum, e) => sum + e.hours, 0);
   const activeProjects = data.projects.filter(p => p.status === "In corso").length;
   useEffect(() => { fetch("/api/branding").then(response => response.ok ? response.json() : null).then(brand => { if (brand) setStudio(current => ({ ...current, ...brand })); }).catch(() => {}); }, []);
   useEffect(() => {
@@ -123,7 +125,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
   if (authenticated === null || loading && authenticated !== false) return <div className="loading-screen"><div className="loading-mark">b.</div><span>Caricamento spazio di lavoro…</span></div>;
   if (!authenticated) return <Login onLogin={login} busy={busy} error={loginError} studio={studio} />;
   const nav: { label: Tab; icon: typeof LayoutDashboard }[] = [{ label: "La mia giornata", icon: CalendarCheck2 }, { label: "Panoramica", icon: LayoutDashboard }, { label: "Clienti", icon: Users }, { label: "Progetti", icon: BriefcaseBusiness }, { label: "Board", icon: ListTodo }, { label: "Lavorazioni", icon: FileText }, ...(currentUser?.role === "Admin" ? [{ label: "Team" as Tab, icon: Users }, { label: "Modelli" as Tab, icon: Layers3 }] : [])];
-  return <div className="app-shell">
+  return <div className="app-shell"><input className="workspace-date-input" aria-label="Scegli giorno" type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/>
     <aside className={cx("sidebar", mobileNav && "sidebar-open")}>
       <div className="brand"><StudioBrand studio={studio}/><button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Chiudi menu"><X size={18}/></button></div>
       <button className="workspace-switch"><span className="workspace-avatar">B</span><span className="workspace-name">{studio.name}<small>{studio.tagline}</small></span><ChevronDown size={15}/></button>
