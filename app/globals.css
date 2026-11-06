@@ -14,7 +14,7 @@ button,input,select,textarea { font:inherit; } button { cursor:pointer; }
 .loading-screen { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:15px; color:#798386; font-size:13px; }
 .loading-mark,.brand-mark { width:35px;height:35px;border-radius:11px;background:#375e53;color:#fff;font-weight:700;font-size:22px;display:grid;place-items:center;letter-spacing:-2px; }
 .app-shell { min-height:100vh; display:flex; }
-.sidebar { width:246px; flex:0 0 246px; background:#fff; border-right:1px solid #ecebe6; display:flex; flex-direction:column; padding:24px 15px 14px; min-height:100vh; }
+.sidebar { width:246px; flex:0 0 246px; position:sticky; top:0; height:100dvh; background:#fff; border-right:1px solid #ecebe6; display:flex; flex-direction:column; padding:24px 15px 14px; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
 .brand { display:flex;align-items:center;gap:10px;padding:0 8px;color:#24343d;font-size:18px;font-weight:700;letter-spacing:-.7px; }
 .brand-mark { width:30px;height:30px;border-radius:9px;font-size:20px; }
 .brand-dot,.heading-period { color:#67927e; }
