@@ -4,8 +4,9 @@ import { ExternalLink, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { Department } from "@/lib/types";
 import { serviceCategories, serviceStatuses, shortDate, type ClientService } from "@/lib/client-domain";
 import type { WebProvider } from "@/lib/web-providers";
+import { SmartServiceCreator } from "@/components/smart-service-creator";
 type Draft = Omit<ClientService, "id" | "clientId" | "createdAt" | "updatedAt">;
-export function ClientServicePanel({ clientId, department, services, canEdit, onChanged, onDirty }: { clientId: string; department: Department; services: ClientService[]; canEdit: boolean; onChanged: () => Promise<unknown>; onDirty: (dirty: boolean) => void }) {
+function ClientServicePanelBase({ clientId, department, services, canEdit, onChanged, onDirty }: { clientId: string; department: Department; services: ClientService[]; canEdit: boolean; onChanged: () => Promise<unknown>; onDirty: (dirty: boolean) => void }) {
   const [providers, setProviders] = useState<WebProvider[]>([]); const [providerLoading, setProviderLoading] = useState(false); const [providerError, setProviderError] = useState("");
   const [packages, setPackages] = useState<{ name: string; department: string; category: string }[]>([]);
   async function loadPackages() { try { const response = await fetch("/api/settings/service-packages"); const body = await response.json(); if (response.ok) setPackages(body.packages || []); } catch { /* Suggestions are optional. */ } }
@@ -23,3 +24,4 @@ export function ClientServicePanel({ clientId, department, services, canEdit, on
   </section>;
 }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="form-field client-field"><span>{label}</span>{children}</label>; }
+export function ClientServicePanel(props: { clientId: string; department: Department; services: ClientService[]; canEdit: boolean; onChanged: () => Promise<unknown>; onDirty: (dirty: boolean) => void }) { return <>{props.canEdit && <SmartServiceCreator clientId={props.clientId} department={props.department} onCreated={props.onChanged}/>}<ClientServicePanelBase {...props}/></>; }
