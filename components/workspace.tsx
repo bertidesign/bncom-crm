@@ -55,6 +55,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
   useEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [tab]);
   useEffect(() => { const saved = window.localStorage.getItem("bncom-workspace-mode"); if (saved === "company" || saved === "private") setWorkspaceMode(saved); }, []);
   useEffect(() => { window.localStorage.setItem("bncom-workspace-mode", workspaceMode); }, [workspaceMode]);
+  useEffect(() => { const label = document.querySelector<HTMLElement>(".top-date span"); if (label) label.textContent = new Intl.DateTimeFormat("it-IT", { day: "numeric", month: "short", year: "numeric" }).format(new Date(`${selectedDate}T12:00:00`)); }, [selectedDate]);
   useEffect(() => { const button = document.querySelector<HTMLButtonElement>(".top-date"); const input = document.querySelector<HTMLInputElement>(".workspace-date-input"); if (!button || !input) return; const open = () => input.showPicker?.(); button.addEventListener("click", open); return () => button.removeEventListener("click", open); }, [authenticated]);
 
   const refresh = useCallback(async () => {
