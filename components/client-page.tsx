@@ -4,14 +4,14 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, BriefcaseBusiness, CalendarDays, Clock3, ExternalLink, Mail, Pencil, Phone, RefreshCw, Trash2 } from "lucide-react";
 import { departments, type Client, type ClientStatus, type Department, type PublicUser } from "@/lib/types";
 import { clientPath, dateOffset, shortDate, type ClientPageData } from "@/lib/client-domain";
-import { canEditClientDepartment } from "@/lib/client-access";
+import { canEditClientDepartment, canViewCommercialData } from "@/lib/client-access";
 import { ClientServicePanel } from "@/components/client-service-panel";
 import { ClientDepartmentInfo } from "@/components/client-department-info";
 import { ClientEditorialCalendar } from "@/components/client-editorial-calendar";
 type Tab = "Riepilogo" | Department | "Progetti e ore";
 const tabs: Tab[] = ["Riepilogo", ...departments, "Progetti e ore"];
 const statuses: ClientStatus[] = ["Attivo", "In valutazione", "In pausa", "Concluso"];
-function generalDraft(client: Client): Record<string, string> { return { name: client.name, company: client.company, email: client.email, phone: client.phone || "", status: client.status, notes: client.notes || "", contactName: client.contactName || "", address: client.address || "", vatNumber: client.vatNumber || "", pec: client.pec || "", sdiCode: client.sdiCode || "", website: client.website || "" }; }
+function generalDraft(client: Client): Record<string, string> { return { name: client.name, company: client.company, email: client.email, phone: client.phone || "", status: client.status, paymentStatus: client.paymentStatus || "Regolare", acquisitionDate: client.acquisitionDate || client.createdAt.slice(0, 10), notes: client.notes || "", contactName: client.contactName || "", address: client.address || "", vatNumber: client.vatNumber || "", pec: client.pec || "", sdiCode: client.sdiCode || "", website: client.website || "" }; }
 export function ClientPage({ clientId, user, onOpenProject, onChanged, onDirtyChange }: { clientId: string; user: PublicUser; onOpenProject: (id: string) => void; onChanged: () => void; onDirtyChange: (dirty: boolean) => void }) {
   const router = useRouter(); const [data, setData] = useState<ClientPageData | null>(null); const [tab, setTab] = useState<Tab>("Riepilogo"); const [error, setError] = useState(""); const [loading, setLoading] = useState(true); const [generalEdit, setGeneralEdit] = useState(false); const [draft, setDraft] = useState<Record<string, string>>({}); const [busy, setBusy] = useState(false); const [dirtySections, setDirtySections] = useState<Record<string, boolean>>({}); const [generation, setGeneration] = useState(0); const tabRefs = useRef<(HTMLButtonElement | null)[]>([]); const dirty = Object.values(dirtySections).some(Boolean);
   const setDirty = (section: string, value: boolean) => setDirtySections(current => ({ ...current, [section]: value }));

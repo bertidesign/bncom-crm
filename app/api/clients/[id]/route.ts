@@ -6,11 +6,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDatabase, updateDatabase } from "@/lib/store";
 import { requireSession, apiError } from "@/lib/http";
+import { getCurrentUser } from "@/lib/auth";
+import { canViewCommercialData } from "@/lib/client-access";
 
 const patchSchema = generalClientSchema.partial().refine(value => Object.keys(value).length > 0);
 
 export async function GET(_: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const denied = await requireSession(); if (denied) return denied;
+  const actor = await getCurrentUser(); if (!actor) return NextResponse.json({ error: "Sessione scaduta. Accedi di nuovo." }, { status: 401 });
   try {
     const { id } = await context.params; const db = await getDatabase();
     const client = db.clients.find(item => item.id === id);
@@ -18,7 +20,8 @@ export async function GET(_: NextRequest, context: { params: Promise<{ id: strin
     const projects = db.projects.filter(project => project.clientId === id);
     const projectIds = new Set(projects.map(project => project.id));
     const entries = db.entries.filter(entry => projectIds.has(entry.projectId)).sort((a, b) => b.date.localeCompare(a.date));
-    return NextResponse.json({ client, projects, entries, dossier: db.clientDossiers.find(item => item.clientId === id) || emptyDossier(id), services: db.clientServices.filter(item => item.clientId === id), posts: db.clientPosts.filter(item => item.clientId === id) });
+    const dossier = db.clientDossiers.find(item => item.clientId === id) || emptyDossier(id);
+    return NextResponse.json({ client, projects, entries, dossier: canViewCommercialData(actor) ? dossier : { ...dossier, commercial: emptyDossier(id).commercial }, services: db.clientServices.filter(item => item.clientId === id), posts: db.clientPosts.filter(item => item.clientId === id) });
   } catch (error) { return apiError(error); }
 }
 

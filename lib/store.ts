@@ -24,11 +24,11 @@ const seed: Database = {
   comments: [], files: [], pendingUploads: [],
   studio: { ...defaultStudio },
   clients: [
-    { id: "c1", name: "Studio Marconi", company: "Studio Marconi", email: "ciao@studiomarconi.it", status: "Attivo", color: "#d5e5de", createdAt: "2026-10-08T09:00:00.000Z" },
-    { id: "c2", name: "Tenuta San Pietro", company: "Tenuta San Pietro", email: "info@tenutasanpietro.it", status: "In valutazione", color: "#ead9c8", createdAt: "2026-10-17T09:00:00.000Z" },
-    { id: "c3", name: "Casa Lume", company: "Casa Lume", email: "studio@casalume.it", status: "Attivo", color: "#dce0ef", createdAt: "2026-09-23T09:00:00.000Z" },
-    { id: "c4", name: "Futura Energia", company: "Futura Energia", email: "marketing@futuraenergia.it", status: "In pausa", color: "#eddfb7", createdAt: "2026-10-28T09:00:00.000Z" },
-    { id: "c5", name: "Osteria del Borgo", company: "Osteria del Borgo", email: "ciao@osteriadelborgo.it", status: "Attivo", color: "#e7d4d2", createdAt: "2026-10-31T09:00:00.000Z" }
+    { id: "c1", name: "Studio Marconi", company: "Studio Marconi", email: "ciao@studiomarconi.it", status: "Attivo", paymentStatus: "Regolare", acquisitionDate: "2026-10-08", color: "#d5e5de", createdAt: "2026-10-08T09:00:00.000Z" },
+    { id: "c2", name: "Tenuta San Pietro", company: "Tenuta San Pietro", email: "info@tenutasanpietro.it", status: "In valutazione", paymentStatus: "Regolare", acquisitionDate: "2026-10-17", color: "#ead9c8", createdAt: "2026-10-17T09:00:00.000Z" },
+    { id: "c3", name: "Casa Lume", company: "Casa Lume", email: "studio@casalume.it", status: "Attivo", paymentStatus: "Regolare", acquisitionDate: "2026-09-23", color: "#dce0ef", createdAt: "2026-09-23T09:00:00.000Z" },
+    { id: "c4", name: "Futura Energia", company: "Futura Energia", email: "marketing@futuraenergia.it", status: "In pausa", paymentStatus: "Moroso", acquisitionDate: "2026-10-28", color: "#eddfb7", createdAt: "2026-10-28T09:00:00.000Z" },
+    { id: "c5", name: "Osteria del Borgo", company: "Osteria del Borgo", email: "ciao@osteriadelborgo.it", status: "Attivo", paymentStatus: "Regolare", acquisitionDate: "2026-10-31", color: "#e7d4d2", createdAt: "2026-10-31T09:00:00.000Z" }
   ],
   projects: [
     { id: "p1", name: "Restyling sito web", clientId: "c1", status: "In corso", color: "#d7e9e1", departmentIds: ["Web"], assigneeIds: [], createdAt: "2026-10-10T09:00:00.000Z" },
@@ -82,7 +82,7 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     files: Array.isArray(raw.files) ? raw.files : [],
     pendingUploads: Array.isArray(raw.pendingUploads) ? raw.pendingUploads.filter(item => Date.parse(item.expiresAt) > Date.now()) : [],
     studio: { ...defaultStudio, ...raw.studio },
-    clients: Array.isArray(raw.clients) ? raw.clients : [],
+    clients: Array.isArray(raw.clients) ? raw.clients.map(client => ({ ...client, paymentStatus: client.paymentStatus || "Regolare", acquisitionDate: client.acquisitionDate || client.createdAt?.slice(0, 10) || "" })) : [],
     projects: Array.isArray(raw.projects) ? raw.projects.map(project => ({ ...project, departmentIds: inferDepartments(project), assigneeIds: Array.isArray(project.assigneeIds) ? project.assigneeIds : [] })) : [],
     entries: Array.isArray(raw.entries) ? raw.entries : [],
     milestones: Array.isArray(raw.milestones) ? raw.milestones : [],
