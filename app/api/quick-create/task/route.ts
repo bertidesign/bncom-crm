@@ -6,7 +6,7 @@ import { departments, type Department } from "@/lib/types";
 import { taskFields } from "@/lib/task-validation";
 import { generalClientSchema } from "@/lib/client-validation";
 
-const schema = taskFields.extend({ projectId: z.string().optional(), newProjectName: z.string().trim().min(2).max(100).optional(), clientId: z.string().optional(), projectDepartmentIds: z.array(z.enum(departments)).min(1).max(3).default(["Web"] as [Department, ...Department[]]), newClient: generalClientSchema.partial().optional() });
+const schema = taskFields.extend({ projectId: z.string().optional(), newProjectName: z.string().trim().min(2).max(100).optional(), clientId: z.string().optional(), projectDepartmentIds: z.array(z.enum(departments)).min(1).max(departments.length).default(["Web"] as [Department, ...Department[]]), newClient: generalClientSchema.partial().optional() });
 
 export async function POST(request: NextRequest) {
   const denied = await requireSession(); if (denied) return denied;

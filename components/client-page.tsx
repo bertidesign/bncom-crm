@@ -9,7 +9,7 @@ import { ClientServicePanel } from "@/components/client-service-panel";
 import { ClientDepartmentInfo } from "@/components/client-department-info";
 import { ClientEditorialCalendar } from "@/components/client-editorial-calendar";
 type Tab = "Riepilogo" | Department | "Progetti e ore";
-const tabs: Tab[] = ["Riepilogo", "Web", "Social", "Grafica", "Progetti e ore"];
+const tabs: Tab[] = ["Riepilogo", ...departments, "Progetti e ore"];
 const statuses: ClientStatus[] = ["Attivo", "In valutazione", "In pausa", "Concluso"];
 function generalDraft(client: Client): Record<string, string> { return { name: client.name, company: client.company, email: client.email, phone: client.phone || "", status: client.status, notes: client.notes || "", contactName: client.contactName || "", address: client.address || "", vatNumber: client.vatNumber || "", pec: client.pec || "", sdiCode: client.sdiCode || "", website: client.website || "" }; }
 export function ClientPage({ clientId, user, onOpenProject, onChanged, onDirtyChange }: { clientId: string; user: PublicUser; onOpenProject: (id: string) => void; onChanged: () => void; onDirtyChange: (dirty: boolean) => void }) {
