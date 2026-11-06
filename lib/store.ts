@@ -84,7 +84,7 @@ export function normalizeDatabase(input: Partial<Database> | string): Database {
     studio: { ...defaultStudio, ...raw.studio },
     clients: Array.isArray(raw.clients) ? raw.clients.map(client => ({ ...client, paymentStatus: client.paymentStatus || "Regolare", acquisitionDate: client.acquisitionDate || client.createdAt?.slice(0, 10) || "" })) : [],
     projects: Array.isArray(raw.projects) ? raw.projects.map(project => ({ ...project, departmentIds: inferDepartments(project), assigneeIds: Array.isArray(project.assigneeIds) ? project.assigneeIds : [] })) : [],
-    entries: Array.isArray(raw.entries) ? raw.entries : [],
+    entries: Array.isArray(raw.entries) ? raw.entries.map(entry => ({ ...entry, billingStatus: entry.billingStatus || "Da fatturare" })) : [],
     milestones: Array.isArray(raw.milestones) ? raw.milestones : [],
     tasks: Array.isArray(raw.tasks) ? raw.tasks.map(task => ({ ...task, dependsOnIds: Array.isArray(task.dependsOnIds) ? task.dependsOnIds : [], handoffs: Array.isArray(task.handoffs) ? task.handoffs : [] })) : [],
     users: Array.isArray(raw.users) ? raw.users.map(user => user.role === "Admin" ? { ...user, departmentIds: [] } : user) : [],
