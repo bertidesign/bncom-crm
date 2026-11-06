@@ -72,7 +72,7 @@ function inferDepartments(project: Partial<Project>): Department[] {
 export function normalizeDatabase(input: Partial<Database> | string): Database {
   const raw = typeof input === "string" ? JSON.parse(input) as Partial<Database> : input;
   const normalized: Database = {
-    webProviders: Array.isArray(raw.webProviders) ? raw.webProviders : [],
+    webProviders: Array.isArray(raw.webProviders) ? raw.webProviders.map(provider => ({ ...provider, department: provider.department || "Web" })) : [],
     editorialPlans: Array.isArray(raw.editorialPlans) ? raw.editorialPlans : [],
     clientDossiers: Array.isArray(raw.clientDossiers) ? raw.clientDossiers : [],
     clientServices: Array.isArray(raw.clientServices) ? raw.clientServices : [],
