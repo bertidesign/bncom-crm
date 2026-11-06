@@ -45,6 +45,7 @@ export function ProjectsWorkspace({ clients: initialClients, projects: initialPr
   useEffect(() => { void load(); }, [initialProjects]);
   useEffect(() => { if (openProjectId) { setSelectedId(openProjectId); setSelectedTaskId(openTaskId || null); setLoggingTask(false); setDetailTab("work"); onOpened(); } }, [openProjectId, openTaskId, onOpened]);
   useEffect(() => { if (!selectedId && !modal) return; const previous = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { document.body.style.overflow = previous; }; }, [selectedId, modal]);
+  useEffect(() => { document.body.classList.toggle("board-only-mode", boardOnly); return () => document.body.classList.remove("board-only-mode"); }, [boardOnly]);
   const selected = data.projects.find(project => project.id === selectedId);
   const selectedTask = data.tasks.find(task => task.id === selectedTaskId && task.projectId === selectedId);
   const filtered = useMemo(() => data.projects.filter(project => (statusFilter === "Tutti" || project.status === statusFilter) && (departmentFilter === "Tutti" || project.departmentIds.includes(departmentFilter)) && `${project.name} ${data.clients.find(client => client.id === project.clientId)?.name || ""} ${project.departmentIds.join(" ")}`.toLowerCase().includes(search.toLowerCase())), [data, statusFilter, departmentFilter, search]);
@@ -67,7 +68,6 @@ export function ProjectsWorkspace({ clients: initialClients, projects: initialPr
   const boardTasks = data.tasks.filter(task => filtered.some(project => project.id === task.projectId));
   async function moveBoardTask(task: Task, status: TaskStatus) { if (status === task.status) return; await updateTaskStatus(task, status); }
 
-  if (boardOnly) return <ProjectKanbanFixed tasks={boardTasks} projects={data.projects} clients={data.clients} users={data.users} onOpen={(projectId, taskId) => { setSelectedId(projectId); setSelectedTaskId(taskId); setDetailTab("work"); }} onMove={moveBoardTask} onCreated={async () => { await load(); onChanged(); }}/>;
   return <><ProjectKanbanFixed tasks={boardTasks} projects={data.projects} clients={data.clients} users={data.users} onOpen={(projectId, taskId) => { setSelectedId(projectId); setSelectedTaskId(taskId); setDetailTab("work"); }} onMove={moveBoardTask} onCreated={async () => { await load(); onChanged(); }}/>
     <div className="page-heading"><div><div className="date-line">DAL BRIEF ALLA CONSEGNA</div><h1>Progetti<span className="heading-period">.</span></h1><p>Un posto semplice per coordinare reparti, scadenze e lavoro operativo.</p></div><button className="button-primary" onClick={newProject}><Plus size={17}/> Nuovo progetto</button></div>
     {error && !selected && !modal && <div className="error-banner" role="alert"><span>{error}</span><button onClick={() => setError("")} aria-label="Chiudi"><X size={16}/></button></div>}
