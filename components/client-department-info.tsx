@@ -1,6 +1,6 @@
 "use client";
-import { useState, type FormEvent } from "react";
-import { Plus, RefreshCw, Trash2 } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { ChevronDown, Plus, RefreshCw, Trash2 } from "lucide-react";
 import type { Department } from "@/lib/types";
 import { dossierKeys, type ClientDossier, type ClientSocialInfo } from "@/lib/client-domain";
 const fields = {
@@ -10,7 +10,8 @@ const fields = {
 } as const;
 const fieldLimits: Record<string, number> = { cms: 100, primaryFont: 200, secondaryFont: 200, colorPalette: 1000, preferredFormats: 2000, objectives: 5000, targetAudience: 5000, toneOfVoice: 5000, reportingNotes: 5000 };
 export function ClientDepartmentInfo({ clientId, department, dossier, canEdit, onChanged, loadLatest, onDirty }: { clientId: string; department: Department; dossier: ClientDossier; canEdit: boolean; onChanged: () => Promise<unknown>; loadLatest: () => Promise<ClientDossier | null>; onDirty: (dirty: boolean) => void }) {
-  const section = dossier[dossierKeys[department]]; const [draft, setDraft] = useState<Record<string, unknown>>({ ...section }); const [version, setVersion] = useState(section.updatedAt); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
+  const section = dossier[dossierKeys[department]]; const [draft, setDraft] = useState<Record<string, unknown>>({ ...section }); const [version, setVersion] = useState(section.updatedAt); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState(""); const [collapsed, setCollapsed] = useState(true);
+  useEffect(() => { const heading = [...document.querySelectorAll<HTMLElement>(".client-section-heading h2")].find(item => item.textContent === `Informazioni ${department}`); const root = heading?.closest<HTMLElement>(".client-section"); const trigger = heading?.closest<HTMLElement>(".client-section-heading"); if (!root || !trigger) return; root.classList.add("client-collapsible", "client-section-collapsed"); const toggle = () => { root.classList.toggle("client-section-collapsed"); setCollapsed(root.classList.contains("client-section-collapsed")); }; trigger.addEventListener("click", toggle); return () => trigger.removeEventListener("click", toggle); }, [department]);
   function change(key: string, value: unknown) { setDraft(current => ({ ...current, [key]: value })); onDirty(true); setNotice(""); }
   async function save(event: FormEvent) { event.preventDefault(); setBusy(true); setError(""); try { const response = await fetch(`/api/clients/${clientId}/departments/${department}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ expectedUpdatedAt: version, data: draft }) }); const body = await response.json(); if (!response.ok) throw new Error(body.error); setDraft(body.section); setVersion(body.section.updatedAt); onDirty(false); setNotice("Informazioni del reparto salvate."); await onChanged(); } catch (e) { setError(e instanceof Error ? e.message : "Salvataggio non riuscito."); } finally { setBusy(false); } }
   async function reload() { if (!confirm("Ricaricare i dati salvati? Le modifiche non salvate in questo modulo andranno perse.")) return; const latest = await loadLatest(); if (latest) { const value = latest[dossierKeys[department]]; setDraft({ ...value }); setVersion(value.updatedAt); onDirty(false); setError(""); setNotice(""); } }
