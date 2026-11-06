@@ -8,6 +8,7 @@ import { ClientPage } from "@/components/client-page";
 import { ClientServicesOverview } from "@/components/client-services-overview";
 import { clientPath } from "@/lib/client-domain";
 import { TemplatesWorkspace } from "@/components/templates-workspace";
+import { SmartTaskCreator } from "@/components/smart-task-creator";
 import { MyDay } from "@/components/my-day";
 import { SettingsWorkspace } from "@/components/settings-workspace";
 import { defaultStudio, palettes, preferencesFor, type StudioSettings } from "@/lib/settings";
@@ -149,7 +150,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
         {tab === "Clienti" && (clientId && currentUser ? <ClientPage key={clientId} clientId={clientId} user={currentUser} onOpenProject={openNotificationProject} onChanged={refresh} onDirtyChange={setClientDirty}/> : <ClientsPage clients={data.clients} projects={data.projects} onAdd={() => { setError(""); setDialog("client"); }} onOpen={client => openClient(client.id)} onStatus={updateClient} search={search} onSearch={setSearch}/>)}
         {tab === "La mia giornata" && currentUser && <MyDay user={currentUser} search={search} onOpen={openNotificationProject} onChanged={refresh}/>}
         {tab === "Progetti" && <ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} openProjectId={openProjectId} openTaskId={openTaskId} currentUser={currentUser!} onOpened={clearOpenedProject} onChanged={refresh}/>}
-        {tab === "Board" && <ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} currentUser={currentUser!} onOpened={() => undefined} onChanged={refresh} boardOnly/>} 
+        {tab === "Board" && <><SmartTaskCreator clients={data.clients} projects={data.projects} onCreated={refresh}/><ProjectsWorkspace clients={data.clients} projects={data.projects} entries={data.entries} search={search} currentUser={currentUser!} onOpened={() => undefined} onChanged={refresh} boardOnly/></>} 
         {tab === "Modelli" && currentUser?.role === "Admin" && <TemplatesWorkspace search={search}/>}
         {tab === "Impostazioni" && currentUser && <SettingsWorkspace initialSection={settingsSection} user={currentUser} onUser={updateSettingsUser} onStudio={setStudio}/>}
         {tab === "Team" && currentUser?.role === "Admin" && <TeamWorkspace currentUser={currentUser} onUserChanged={updateSettingsUser}/> }
