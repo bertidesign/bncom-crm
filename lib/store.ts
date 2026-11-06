@@ -7,8 +7,10 @@ import { departments } from "@/lib/types";
 import { initialTemplates } from "@/lib/project-templates";
 import { defaultStudio, preferencesFor } from "@/lib/settings";
 import { hashPassword } from "@/lib/password";
+import { cookies } from "next/headers";
 
-const dataFile = path.join(process.env.CRM_DATA_DIR || path.join(process.cwd(), "data"), "crm.json");
+const dataDirectory = process.env.CRM_DATA_DIR || path.join(process.cwd(), "data");
+const dataFile = (workspaceId: string) => path.join(dataDirectory, `crm-${workspaceId}.json`);
 const demoToday = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Rome" });
 function dayOffset(value: string, offset: number) {
   const date = new Date(`${value}T12:00:00`); date.setDate(date.getDate() + offset);
@@ -49,6 +51,11 @@ const seed: Database = {
   users: [],
   notifications: []
 };
+const workspaceIds = ["company", "private"] as const;
+export type WorkspaceId = typeof workspaceIds[number];
+export function workspaceIdFromValue(value: unknown): WorkspaceId { return value === "private" ? "private" : "company"; }
+async function currentWorkspaceId(): Promise<WorkspaceId> { return workspaceIdFromValue((await cookies()).get("bncom_workspace")?.value); }
+function privateSeed(): Database { return { ...structuredClone(seed), clients: [], projects: [], entries: [], milestones: [], tasks: [], notifications: [], comments: [], files: [], pendingUploads: [], clientDossiers: [], clientServices: [], clientPosts: [], editorialPlans: [], templates: structuredClone(initialTemplates), webProviders: [] }; }
 
 function bootstrapAdmin(): TeamUser | null {
   const password = process.env.CRM_PASSWORD || (process.env.NODE_ENV === "development" ? "bncom-demo" : "");
@@ -105,36 +112,43 @@ async function ensureSchema() {
   if (!schemaReady) {
     schemaReady = (async () => {
       const sql = sqlClient();
-      await sql`CREATE TABLE IF NOT EXISTS bncom_crm_state (id integer PRIMARY KEY CHECK (id = 1), revision bigint NOT NULL DEFAULT 0, data jsonb NOT NULL)`;
-      await sql`INSERT INTO bncom_crm_state (id, revision, data) VALUES (1, 0, ${JSON.stringify(seed)}::jsonb) ON CONFLICT (id) DO NOTHING`;
+      await sql`CREATE TABLE IF NOT EXISTS bncom_crm_state (id integer PRIMARY KEY, workspace_id text NOT NULL DEFAULT 'company', revision bigint NOT NULL DEFAULT 0, data jsonb NOT NULL)`;
+      await sql`ALTER TABLE bncom_crm_state DROP CONSTRAINT IF EXISTS bncom_crm_state_id_check`;
+      await sql`ALTER TABLE bncom_crm_state ADD COLUMN IF NOT EXISTS workspace_id text NOT NULL DEFAULT 'company'`;
+      await sql`UPDATE bncom_crm_state SET workspace_id = 'company' WHERE workspace_id IS NULL`;
+      await sql`INSERT INTO bncom_crm_state (id, workspace_id, revision, data) VALUES (1, 'company', 0, ${JSON.stringify(seed)}::jsonb) ON CONFLICT (id) DO NOTHING`;
+      await sql`INSERT INTO bncom_crm_state (id, workspace_id, revision, data) VALUES (2, 'private', 0, ${JSON.stringify(privateSeed())}::jsonb) ON CONFLICT (id) DO NOTHING`;
     })().catch(error => { schemaReady = undefined; throw error; });
   }
   await schemaReady;
 }
 async function ensureLocalStore() {
-  await fs.mkdir(path.dirname(dataFile), { recursive: true });
-  try { await fs.access(dataFile); } catch { await fs.writeFile(dataFile, JSON.stringify(seed, null, 2)); }
+  await fs.mkdir(dataDirectory, { recursive: true });
+  try { await fs.access(dataFile("company")); } catch { await fs.writeFile(dataFile("company"), JSON.stringify(seed, null, 2)); }
+  try { await fs.access(dataFile("private")); } catch { await fs.writeFile(dataFile("private"), JSON.stringify(privateSeed(), null, 2)); }
 }
-export async function getDatabase(): Promise<Database> {
+export async function getDatabase(workspaceOverride?: WorkspaceId): Promise<Database> {
+  const workspaceId = workspaceOverride || await currentWorkspaceId();
   if (databaseUrl()) {
     await ensureSchema();
-    const rows = await sqlClient()`SELECT data FROM bncom_crm_state WHERE id = 1`;
-    return normalizeDatabase(rows[0].data as Database);
+    const rows = await sqlClient()`SELECT data FROM bncom_crm_state WHERE workspace_id = ${workspaceId} LIMIT 1`;
+    const normalized = normalizeDatabase(rows[0].data as Database); if (workspaceId === "private" && !normalized.users.length) normalized.users = (await getDatabase("company")).users; return normalized;
   }
   if (process.env.VERCEL) throw new Error("DATABASE_URL non configurata: collega un database Postgres/Neon al progetto Vercel.");
   await ensureLocalStore();
-  return normalizeDatabase(await fs.readFile(dataFile, "utf8"));
+  const normalized = normalizeDatabase(await fs.readFile(dataFile(workspaceId), "utf8")); if (workspaceId === "private" && normalized.users.length <= 1) normalized.users = (await getDatabase("company")).users; return normalized;
 }
-export async function updateDatabase<T>(mutator: (db: Database) => T | Promise<T>): Promise<{ db: Database; result: T }> {
+export async function updateDatabase<T>(mutator: (db: Database) => T | Promise<T>, workspaceOverride?: WorkspaceId): Promise<{ db: Database; result: T }> {
+  const workspaceId = workspaceOverride || await currentWorkspaceId();
   if (databaseUrl()) {
     await ensureSchema();
     const sql = sqlClient();
     for (let attempt = 0; attempt < 5; attempt++) {
-      const rows = await sql`SELECT revision, data FROM bncom_crm_state WHERE id = 1`;
+      const rows = await sql`SELECT revision, data FROM bncom_crm_state WHERE workspace_id = ${workspaceId} LIMIT 1`;
       const revision = Number(rows[0].revision);
       const db = normalizeDatabase(rows[0].data as Database);
       const result = await mutator(db);
-      const updated = await sql`UPDATE bncom_crm_state SET data = ${JSON.stringify(db)}::jsonb, revision = revision + 1 WHERE id = 1 AND revision = ${revision} RETURNING revision`;
+      const updated = await sql`UPDATE bncom_crm_state SET data = ${JSON.stringify(db)}::jsonb, revision = revision + 1 WHERE workspace_id = ${workspaceId} AND revision = ${revision} RETURNING revision`;
       if (updated.length) return { db, result };
     }
     throw new Error("Database occupato: impossibile salvare dopo più tentativi. Riprova.");
@@ -142,7 +156,7 @@ export async function updateDatabase<T>(mutator: (db: Database) => T | Promise<T
   if (process.env.VERCEL) throw new Error("DATABASE_URL non configurata: il CRM non salva su filesystem temporaneo Vercel.");
   let result!: T;
   let db!: Database;
-  const operation = writeQueue.then(async () => { db = normalizeDatabase(await getDatabase()); result = await mutator(db); const temp = `${dataFile}.tmp`; await fs.writeFile(temp, JSON.stringify(db, null, 2)); await fs.rename(temp, dataFile); });
+  const operation = writeQueue.then(async () => { db = normalizeDatabase(await getDatabase()); result = await mutator(db); const temp = `${dataFile(workspaceId)}.tmp`; await fs.writeFile(temp, JSON.stringify(db, null, 2)); await fs.rename(temp, dataFile(workspaceId)); });
   writeQueue = operation.catch(() => {});
   await operation;
   return { db, result };
