@@ -5,7 +5,7 @@ export const serviceCategories = {
   Social: ["Gestione social", "Piano editoriale", "Campagna advertising", "Community management", "Altro"],
   Grafica: ["Identità visiva", "Grafica ricorrente", "Stampa", "Impaginazione", "Altro"],
   Commerciale: ["Lead generation", "Sviluppo commerciale", "Preventivo", "Partnership", "Altro"],
-  MassMedia: ["Banner pubblicitari", "Campagna display", "Sponsorizzazione contenuti", "Pacchetto multi-testata", "Altro"]
+  PubblicitaEditoriale: ["Banner pubblicitari", "Campagna display", "Sponsorizzazione contenuti", "Pacchetto multi-testata", "Altro"]
 } as const;
 export const serviceStatuses = ["In attivazione", "Attivo", "In pausa", "Terminato"] as const;
 export const postStatuses = ["Idea", "In preparazione", "In approvazione", "Programmato", "Pubblicato"] as const;
@@ -19,7 +19,7 @@ export type ClientCommercialInfo = DepartmentMeta & { accountManager: string; pi
 export type ClientMassMediaInfo = DepartmentMeta & { newspaperSites: string; advertisingContact: string; bannerFormats: string; campaignNotes: string; mediaKitUrl: string; notes: string };
 export type ClientDossier = { clientId: string; web: ClientWebInfo; social: ClientSocialInfo; graphics: ClientGraphicsInfo; commercial: ClientCommercialInfo; massMedia: ClientMassMediaInfo };
 export type ClientPageData = { client: Client; dossier: ClientDossier; services: ClientService[]; posts: ClientPost[]; projects: Project[]; entries: WorkEntry[] };
-export const dossierKeys = { Web: "web", Social: "social", Grafica: "graphics", Commerciale: "commercial", MassMedia: "massMedia" } as const;
+export const dossierKeys = { Web: "web", Social: "social", Grafica: "graphics", Commerciale: "commercial", PubblicitaEditoriale: "massMedia" } as const;
 export function emptyDossier(clientId: string): ClientDossier {
   const meta = { updatedAt: "", updatedBy: "" };
   return { clientId, web: { ...meta, websiteUrl: "", cms: "", stagingUrl: "", repositoryUrl: "", technicalContact: "", maintenanceNotes: "", notes: "" }, social: { ...meta, channels: [], objectives: "", targetAudience: "", toneOfVoice: "", publishingFrequency: "", editorialPlanUrl: "", approvalContact: "", reportingNotes: "", notes: "" }, graphics: { ...meta, brandGuideUrl: "", assetsFolderUrl: "", primaryFont: "", secondaryFont: "", colorPalette: "", preferredFormats: "", printSupplier: "", approvalContact: "", productionNotes: "", notes: "" }, commercial: { ...meta, accountManager: "", pipelineStatus: "", opportunityNotes: "", quoteUrl: "", nextContactDate: "", notes: "" }, massMedia: { ...meta, newspaperSites: "", advertisingContact: "", bannerFormats: "", campaignNotes: "", mediaKitUrl: "", notes: "" } };

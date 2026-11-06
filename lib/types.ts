@@ -2,7 +2,7 @@ import type { WebProvider } from "@/lib/web-providers";
 import type { EditorialPlan } from "@/lib/editorial-import-types";
 import type { ClientDossier, ClientService, ClientPost } from "@/lib/client-domain";
 import type { StudioSettings, UserPreferences } from "@/lib/settings";
-export const departments = ["Grafica", "Web", "Social", "Commerciale", "MassMedia"] as const;
+export const departments = ["Grafica", "Web", "Social", "Commerciale", "PubblicitaEditoriale"] as const;
 export const departmentStatuses = ["Da avviare", "In corso", "In revisione", "In attesa", "Completato"] as const;
 export type DepartmentStatus = typeof departmentStatuses[number];
 export type Department = typeof departments[number];
