@@ -14,12 +14,16 @@ export async function POST(request: NextRequest) {
       const clientId = existingClient?.id || sourceClient.id; if (!existingClient) company.clients.unshift({ ...sourceClient, id: clientId });
       const existingProject = company.projects.some(project => project.id === sourceProject.id); const targetProject = existingProject ? { ...sourceProject, id: crypto.randomUUID(), clientId } : { ...sourceProject, clientId };
       company.projects.unshift(targetProject);
-      company.milestones.unshift(...source.milestones.filter(item => item.projectId === projectId).map(item => ({ ...item, id: crypto.randomUUID(), projectId: targetProject.id })));
-      company.tasks.unshift(...source.tasks.filter(item => item.projectId === projectId).map(item => ({ ...item, id: crypto.randomUUID(), projectId: targetProject.id })));
-      company.entries.unshift(...source.entries.filter(item => item.projectId === projectId).map(item => ({ ...item, id: crypto.randomUUID(), projectId: targetProject.id })));
+      const sourceMilestones = source.milestones.filter(item => item.projectId === projectId); const milestoneIds = new Map(sourceMilestones.map(item => [item.id, crypto.randomUUID()]));
+      company.milestones.unshift(...sourceMilestones.map(item => ({ ...item, id: milestoneIds.get(item.id)!, projectId: targetProject.id })));
+      const sourceTasks = source.tasks.filter(item => item.projectId === projectId); const taskIds = new Map(sourceTasks.map(item => [item.id, crypto.randomUUID()]));
+      company.tasks.unshift(...sourceTasks.map(item => ({ ...item, id: taskIds.get(item.id)!, projectId: targetProject.id, milestoneId: item.milestoneId ? milestoneIds.get(item.milestoneId) : undefined })));
+      company.entries.unshift(...source.entries.filter(item => item.projectId === projectId).map(item => ({ ...item, id: crypto.randomUUID(), projectId: targetProject.id, taskId: item.taskId ? taskIds.get(item.taskId) : undefined })));
+      company.comments.unshift(...source.comments.filter(item => item.projectId === projectId).map(item => ({ ...item, id: crypto.randomUUID(), projectId: targetProject.id, taskId: item.taskId ? taskIds.get(item.taskId) : undefined })));
+      company.files.unshift(...source.files.filter(item => item.projectId === projectId).map(item => ({ ...item, id: crypto.randomUUID(), projectId: targetProject.id, taskId: item.taskId ? taskIds.get(item.taskId) : undefined })));
       return targetProject;
     }, "company");
-    await updateDatabase(privateDb => { privateDb.projects = privateDb.projects.filter(project => project.id !== projectId); privateDb.milestones = privateDb.milestones.filter(item => item.projectId !== projectId); privateDb.tasks = privateDb.tasks.filter(item => item.projectId !== projectId); privateDb.entries = privateDb.entries.filter(item => item.projectId !== projectId); return true; }, "private");
+    await updateDatabase(privateDb => { privateDb.projects = privateDb.projects.filter(project => project.id !== projectId); privateDb.milestones = privateDb.milestones.filter(item => item.projectId !== projectId); privateDb.tasks = privateDb.tasks.filter(item => item.projectId !== projectId); privateDb.entries = privateDb.entries.filter(item => item.projectId !== projectId); privateDb.comments = privateDb.comments.filter(item => item.projectId !== projectId); privateDb.files = privateDb.files.filter(item => item.projectId !== projectId); return true; }, "private");
     return NextResponse.json({ project: result.result }, { status: 201 });
   } catch (error) { return apiError(error); }
 }
