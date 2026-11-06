@@ -53,6 +53,8 @@ export function Workspace({ clientId }: { clientId?: string }) {
   const [me, setMe] = useState("Andrea");
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "auto" }); }, [tab]);
+  useEffect(() => { const saved = window.localStorage.getItem("bncom-workspace-mode"); if (saved === "company" || saved === "private") setWorkspaceMode(saved); }, []);
+  useEffect(() => { window.localStorage.setItem("bncom-workspace-mode", workspaceMode); }, [workspaceMode]);
   useEffect(() => { const button = document.querySelector<HTMLButtonElement>(".top-date"); const input = document.querySelector<HTMLInputElement>(".workspace-date-input"); if (!button || !input) return; const open = () => input.showPicker?.(); button.addEventListener("click", open); return () => button.removeEventListener("click", open); }, [authenticated]);
 
   const refresh = useCallback(async () => {
