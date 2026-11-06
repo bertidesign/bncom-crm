@@ -47,6 +47,8 @@ export function Workspace({ clientId }: { clientId?: string }) {
   const [selectedDate, setSelectedDate] = useState(today);
   const [dialog, setDialog] = useState<"entry" | "client" | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
+  const [workspaceMenu, setWorkspaceMenu] = useState(false);
+  const [workspaceMode, setWorkspaceMode] = useState<"company" | "private">("company");
   const [busy, setBusy] = useState(false);
   const [me, setMe] = useState("Andrea");
 
@@ -128,7 +130,7 @@ export function Workspace({ clientId }: { clientId?: string }) {
   return <div className="app-shell"><input className="workspace-date-input" aria-label="Scegli giorno" type="date" value={selectedDate} onChange={event => setSelectedDate(event.target.value)}/>
     <aside className={cx("sidebar", mobileNav && "sidebar-open")}>
       <div className="brand"><StudioBrand studio={studio}/><button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Chiudi menu"><X size={18}/></button></div>
-      <button className="workspace-switch"><span className="workspace-avatar">B</span><span className="workspace-name">{studio.name}<small>{studio.tagline}</small></span><ChevronDown size={15}/></button>
+      <div className="workspace-picker"><button className="workspace-switch" aria-expanded={workspaceMenu} onClick={() => setWorkspaceMenu(value => !value)}><span className="workspace-avatar">{workspaceMode === "company" ? "B" : me.slice(0, 1).toUpperCase()}</span><span className="workspace-name">{workspaceMode === "company" ? studio.name : "Spazio privato"}<small>{workspaceMode === "company" ? studio.tagline : "Solo per te"}</small></span><ChevronDown size={15}/></button>{workspaceMenu && <div className="workspace-menu" role="menu"><button className={workspaceMode === "company" ? "workspace-menu-active" : ""} onClick={() => { setWorkspaceMode("company"); setWorkspaceMenu(false); }} role="menuitem"><span className="workspace-avatar">B</span><span><strong>{studio.name}</strong><small>Spazio aziendale</small></span></button><button className={workspaceMode === "private" ? "workspace-menu-active" : ""} onClick={() => { setWorkspaceMode("private"); setWorkspaceMenu(false); }} role="menuitem"><span className="workspace-avatar">{me.slice(0, 1).toUpperCase()}</span><span><strong>Spazio privato</strong><small>Solo per te</small></span></button></div>}</div>
       <div className="side-label">MENU</div>
       <nav className="side-nav" aria-label="Menu principale">{nav.map(({ label, icon: Icon }) => <button key={label} className={cx("nav-item", tab === label && "nav-active")} onClick={() => navigateTab(label)}><Icon size={18} strokeWidth={1.8}/><span>{label === "La mia giornata" && currentUser?.role === "Admin" ? "Giornata studio" : label}</span>{label === "Lavorazioni" && <span className="nav-count">{data.entries.length}</span>}</button>)}</nav>
       <div className="side-label client-label">CLIENTI <button title="Aggiungi cliente" onClick={() => setDialog("client")}><Plus size={15}/></button></div>
