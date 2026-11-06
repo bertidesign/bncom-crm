@@ -14,7 +14,7 @@ export type UserPreferences = {
   notifications: Record<Notification["entityType"], boolean> & { mentions: boolean; workflow: boolean };
 };
 export type StudioSettings = { name: string; tagline: string; contactEmail: string; logo: string; logoPath?: string; workdayHours: number };
-export const defaultPreferences: UserPreferences = { palette: "salvia", density: "comfortable", startPage: "Panoramica", notifications: { project: true, milestone: true, task: true, mentions: true, workflow: true } };
+export const defaultPreferences: UserPreferences = { palette: "salvia", density: "comfortable", startPage: "Panoramica", notifications: { project: true, milestone: true, task: true, service: true, mentions: true, workflow: true } };
 export const defaultStudio: StudioSettings = { name: "BNCom Studio", tagline: "Spazio di lavoro", contactEmail: "", logo: "", workdayHours: 8 };
 export function preferencesFor(value?: Partial<UserPreferences>): UserPreferences {
   return { ...defaultPreferences, ...value, notifications: { ...defaultPreferences.notifications, ...value?.notifications } };
