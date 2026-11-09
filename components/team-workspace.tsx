@@ -1,17 +1,19 @@
 "use client";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Check, Mail, Pencil, Plus, ShieldCheck, Trash2, Users, X } from "lucide-react";
-import type { Department, PublicUser, UserRole } from "@/lib/types";
+import type { Department, PublicUser, UserRole, Task } from "@/lib/types";
 import { UserAvatar } from "@/components/user-avatar";
 import { AvatarUploader } from "@/components/avatar-uploader";
 import { departments } from "@/lib/types";
 const initials = (name: string) => name.split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
 function cx(...values: (string | false | null | undefined)[]) { return values.filter(Boolean).join(" "); }
 export function TeamWorkspace({ currentUser, onUserChanged }: { currentUser: PublicUser; onUserChanged: (user: PublicUser) => void }) {
+  const canManage = currentUser.role === "Admin";
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [formRole, setFormRole] = useState<UserRole>("Collaboratore");
   const [users, setUsers] = useState<PublicUser[]>([]); const [modal, setModal] = useState(false); const [editUser, setEditUser] = useState<PublicUser | null>(null); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
   async function load() { try { const response = await fetch("/api/users"); const body = await response.json(); if (!response.ok) throw new Error(body.error || "Impossibile caricare il team."); setUsers(body.users); setError(""); } catch (e) { setError(e instanceof Error ? e.message : "Errore di caricamento."); } }
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); fetch("/api/day").then(response => response.ok ? response.json() : null).then(body => setTasks(body?.tasks || [])); }, []);
   async function save(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const form = new FormData(event.currentTarget); const payload: Record<string, unknown> = { name: form.get("name"), jobTitle: form.get("jobTitle"), email: form.get("email"), role: form.get("role"), departmentIds: form.getAll("departmentIds").map(String) }; const password = String(form.get("password") || ""); if (password) payload.password = password; if (!editUser && !password) { setError("Inserisci una password iniziale di almeno 10 caratteri."); return; } setBusy(true); try { const response = await fetch(editUser ? `/api/users/${editUser.id}` : "/api/users", { method: editUser ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || "Salvataggio non riuscito."); if (body.user.id === currentUser.id) onUserChanged(body.user); setModal(false); setEditUser(null); await load(); } catch (e) { setError(e instanceof Error ? e.message : "Salvataggio non riuscito."); } finally { setBusy(false); } }
   async function toggleActive(user: PublicUser) { try { const response = await fetch(`/api/users/${user.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ active: !user.active }) }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || "Aggiornamento non riuscito."); await load(); } catch (e) { setError(e instanceof Error ? e.message : "Aggiornamento non riuscito."); } }
   async function remove(user: PublicUser) { if (!confirm(`Eliminare l'account di ${user.name}? Le sue assegnazioni verranno rimosse dai progetti, ma le lavorazioni registrate resteranno nello storico.`)) return; try { const response = await fetch(`/api/users/${user.id}`, { method: "DELETE" }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || "Eliminazione non riuscita."); await load(); } catch (e) { setError(e instanceof Error ? e.message : "Eliminazione non riuscita."); } }
