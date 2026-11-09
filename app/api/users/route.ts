@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { requireAdmin, apiError } from "@/lib/http";
+import { requireAdmin, requireSession, apiError } from "@/lib/http";
 import { getDatabase, updateDatabase } from "@/lib/store";
 import { departments } from "@/lib/types";
 import { hashPassword, publicUser } from "@/lib/password";
 const schema = z.object({ jobTitle: z.string().trim().max(100).optional(), name: z.string().trim().min(2).max(80), email: z.string().trim().email().max(160), role: z.enum(["Admin", "Collaboratore"]), departmentIds: z.array(z.enum(departments)).default([]), password: z.string().min(10).max(200) }).refine(user => user.role === "Admin" || user.departmentIds.length > 0);
-export async function GET() { const { response } = await requireAdmin(); if (response) return response; try { const db = await getDatabase(); return NextResponse.json({ users: db.users.map(publicUser), departments }); } catch (error) { return apiError(error); } }
+export async function GET() { const denied = await requireSession(); if (denied) return denied; try { const db = await getDatabase(); return NextResponse.json({ users: db.users.map(publicUser), departments }); } catch (error) { return apiError(error); } }
 export async function POST(request: NextRequest) { const auth = await requireAdmin(); if (auth.response) return auth.response; const parsed = schema.safeParse(await request.json().catch(() => null)); if (!parsed.success) return NextResponse.json({ error: "Controlla nome, email, reparto e password (almeno 10 caratteri)." }, { status: 400 }); try { const { result } = await updateDatabase(db => { if (db.users.some(user => user.email.toLowerCase() === parsed.data.email.toLowerCase())) return { error: "Esiste già un utente con questa email." }; const { password, ...fields } = parsed.data; fields.departmentIds = fields.role === "Admin" ? [] : fields.departmentIds; const user = { id: crypto.randomUUID(), ...fields, email: fields.email.toLowerCase(), active: true, passwordHash: hashPassword(password), createdAt: new Date().toISOString() }; db.users.push(user); return { user }; }); return "error" in result ? NextResponse.json({ error: result.error }, { status: 409 }) : NextResponse.json({ user: publicUser(result.user) }, { status: 201 }); } catch (error) { return apiError(error); } }
