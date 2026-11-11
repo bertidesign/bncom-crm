@@ -23,7 +23,7 @@ export async function discoverCalendarUrl(account: string, appPassword: string) 
   if (!principal) throw new Error("Calendario iCloud: principal non trovato.");
   const partition = first.response.headers.get("x-apple-user-partition");
   const partitionBase = partition && /^\d+$/.test(partition) ? `https://p${partition}-caldav.icloud.com/` : root;
-  const principalUrlObject = new URL(principal, root); principalUrlObject.host = "caldav.icloud.com"; const principalUrl = principalUrlObject.toString();
+  const principalUrlObject = new URL(principal, root); principalUrlObject.host = new URL(partitionBase).host; const principalUrl = principalUrlObject.toString();
   const home = href(await propfind(principalUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><c:calendar-home-set/></d:prop></d:propfind>`));
   if (!home) throw new Error("Calendario iCloud: home non trovata.");
   const homeUrl = new URL(home, partitionBase).toString();
