@@ -1,0 +1,5 @@
+import { NextResponse } from "next/server";
+import { requireAdmin, apiError } from "@/lib/http";
+import { decryptCalendarSecret, verifyCalDav } from "@/lib/calendar-caldav";
+import { getDatabase, updateDatabase } from "@/lib/store";
+export async function POST() { const auth = await requireAdmin(); if (auth.response) return auth.response; try { const current = (await getDatabase()).studio.calendarConnection; if (!current) return NextResponse.json({ error: "Apple Calendar non collegato." }, { status: 409 }); await verifyCalDav(current.account, decryptCalendarSecret(current.appPasswordCiphertext), current.calendarUrl); const lastSyncAt = new Date().toISOString(); await updateDatabase(db => { if (db.studio.calendarConnection) { db.studio.calendarConnection.lastSyncAt = lastSyncAt; db.studio.calendarConnection.status = "connected"; } }); return NextResponse.json({ ok: true, syncedAt: lastSyncAt, events: [] }); } catch (error) { try { await updateDatabase(db => { if (db.studio.calendarConnection) db.studio.calendarConnection.status = "error"; }); } catch {} return apiError(error); } }
