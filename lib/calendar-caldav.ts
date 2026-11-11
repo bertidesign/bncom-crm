@@ -31,12 +31,12 @@ export async function discoverCalendarUrls(account: string, appPassword: string)
     .map(match => {
       const block = match[1];
       const resourceType = block.match(/<[^>]*resourcetype[^>]*>([\s\S]*?)<\/[^>]*resourcetype>/i)?.[1] || "";
-      if (!/<[^>]*calendar\s*\/?\s*>/i.test(resourceType)) return undefined;
+      if (!/<(?:[\w-]+:)?calendar\b[^>]*\/?>/i.test(resourceType)) return undefined;
       return block.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>/i)?.[1];
     })
     .filter((value): value is string => Boolean(value && /\/calendars\//i.test(value) && !/\/principal\/?$/i.test(value)))
     .map(value => new URL(value, partitionBase).toString());
-  if (!calendarHrefs.length) throw new Error(`Calendario iCloud: nessun calendario disponibile (${homeUrl}). Risposta: ${calendarsXml.replace(/\s+/g, " ").slice(0, 900)}`);
+  if (!calendarHrefs.length) throw new Error("Calendario iCloud: nessun calendario disponibile.");
   return [...new Set(calendarHrefs)];
 }
 export async function discoverCalendarUrl(account: string, appPassword: string) { return (await discoverCalendarUrls(account, appPassword))[0]; }
