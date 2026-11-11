@@ -28,9 +28,10 @@ export async function discoverCalendarUrl(account: string, appPassword: string) 
   if (!home) throw new Error("Calendario iCloud: home non trovata.");
   const homeUrl = new URL(home, partitionBase).toString();
   const calendarsXml = await propfind(homeUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:resourcetype/><d:displayname/></d:prop></d:propfind>`, "1");
-  const match = calendarsXml.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>[\s\S]*?<[^>]*resourcetype[^>]*>[\s\S]*?<[^>]*calendar\b/i);
-  if (!match?.[1]) throw new Error("Calendario iCloud: nessun calendario disponibile.");
-  return new URL(match[1], partitionBase).toString();
+  const calendarBlock = calendarsXml.split(/<[^>]*response\b[^>]*>/i).find(block => /<[^>]*calendar\b/i.test(block));
+  const calendarHref = calendarBlock?.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>/i)?.[1];
+  if (!calendarHref) throw new Error("Calendario iCloud: nessun calendario disponibile.");
+  return new URL(calendarHref, partitionBase).toString();
 }
 function unfold(value: string) { return value.replace(/\r?\n[ \t]/g, ""); }
 function field(block: string, name: string) { return block.match(new RegExp(`^${name}(?:;[^:]*)?:(.*)$`, "mi"))?.[1]?.trim() || ""; }
