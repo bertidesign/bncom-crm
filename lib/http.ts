@@ -13,5 +13,6 @@ export function apiError(error: unknown) {
   console.error(error);
   const message = error instanceof Error ? error.message : "";
   if (message.includes("DATABASE_URL non configurata")) return NextResponse.json({ error: message }, { status: 503 });
+  if (message.startsWith("Apple Calendar")) return NextResponse.json({ error: message.replace(/Authorization[^\n]*/gi, "Authorization [REDACTED]") }, { status: 502 });
   return NextResponse.json({ error: "Si è verificato un errore. Riprova." }, { status: 500 });
 }
