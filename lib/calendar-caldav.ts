@@ -28,7 +28,7 @@ export async function discoverCalendarUrl(account: string, appPassword: string) 
   if (!home) throw new Error("Calendario iCloud: home non trovata.");
   const homeUrl = new URL(home, partitionBase).toString();
   const calendarsXml = await propfind(homeUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:resourcetype/><d:displayname/></d:prop></d:propfind>`, "1");
-  const calendarHref = calendarsXml.split(/<[^>]*response\b[^>]*>/i).map(block => /<[^>]*calendar\b/i.test(block) ? block.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>/i)?.[1] : undefined).find(value => value && !/\/principal\/?$/i.test(value));
+  const calendarHref = calendarsXml.split(/<[^>]*response\b[^>]*>/i).map(block => /<[^>]*calendar\b/i.test(block) ? block.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>/i)?.[1] : undefined).find(value => value && /\/calendars\//i.test(value) && !/\/principal\/?$/i.test(value));
   if (!calendarHref) throw new Error("Calendario iCloud: nessun calendario disponibile.");
   return new URL(calendarHref, partitionBase).toString();
 }
