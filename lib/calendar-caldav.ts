@@ -36,7 +36,7 @@ export async function discoverCalendarUrls(account: string, appPassword: string)
     })
     .filter((value): value is string => Boolean(value && /\/calendars\//i.test(value) && !/\/principal\/?$/i.test(value)))
     .map(value => new URL(value, partitionBase).toString());
-  if (!calendarHrefs.length) throw new Error("Calendario iCloud: nessun calendario disponibile.");
+  if (!calendarHrefs.length) throw new Error(`Calendario iCloud: nessun calendario disponibile (${homeUrl}). Risposta: ${calendarsXml.replace(/\s+/g, " ").slice(0, 900)}`);
   return [...new Set(calendarHrefs)];
 }
 export async function discoverCalendarUrl(account: string, appPassword: string) { return (await discoverCalendarUrls(account, appPassword))[0]; }
