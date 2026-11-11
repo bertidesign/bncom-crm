@@ -16,7 +16,22 @@ async function caldavRequest(url: string, account: string, appPassword: string, 
 export async function verifyCalDav(account: string, appPassword: string, calendarUrl?: string) { const url = calendarUrl || "https://caldav.icloud.com/.well-known/caldav"; const { response } = await caldavRequest(url, account, appPassword, "PROPFIND", `<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/><d:current-user-principal/></d:prop></d:propfind>`); return { url, status: response.status }; }
 async function propfind(url: string, account: string, appPassword: string, body: string, depth = "0") { return (await caldavRequest(url, account, appPassword, "PROPFIND", body, depth)).text; }
 function href(xml: string, name?: string) { return name ? xml.match(new RegExp(`<[^>]*${name}[^>]*>[\\s\\S]*?<[^>]*href[^>]*>([^<]+)`, "i"))?.[1] || "" : xml.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>/i)?.[1] || ""; }
-export async function discoverCalendarUrl(account: string, appPassword: string) { const root = "https://caldav.icloud.com/.well-known/caldav"; const principal = href(await propfind(root, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal/></d:prop></d:propfind>`)); if (!principal) throw new Error("Calendario iCloud: principal non trovato."); const principalUrl = new URL(principal, root).toString(); const home = href(await propfind(principalUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><c:calendar-home-set/></d:prop></d:propfind>`)); if (!home) throw new Error("Calendario iCloud: home non trovata."); const homeUrl = new URL(home, root).toString(); const calendarsXml = await propfind(homeUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:resourcetype/><d:displayname/></d:prop></d:propfind>`, "1"); const match = calendarsXml.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>[\s\S]*?<[^>]*resourcetype[^>]*>[\s\S]*?<[^>]*calendar\b/i); if (!match?.[1]) throw new Error("Calendario iCloud: nessun calendario disponibile."); return new URL(match[1], root).toString(); }
+export async function discoverCalendarUrl(account: string, appPassword: string) {
+  const root = "https://caldav.icloud.com/.well-known/caldav";
+  const first = await caldavRequest(root, account, appPassword, "PROPFIND", `<?xml version="1.0"?><d:propfind xmlns:d="DAV:"><d:prop><d:current-user-principal/></d:prop></d:propfind>`);
+  const principal = href(first.text);
+  if (!principal) throw new Error("Calendario iCloud: principal non trovato.");
+  const partition = first.response.headers.get("x-apple-user-partition");
+  const partitionBase = partition && /^\d+$/.test(partition) ? `https://p${partition}-caldav.icloud.com/` : root;
+  const principalUrl = new URL(principal, partitionBase).toString();
+  const home = href(await propfind(principalUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><c:calendar-home-set/></d:prop></d:propfind>`));
+  if (!home) throw new Error("Calendario iCloud: home non trovata.");
+  const homeUrl = new URL(home, partitionBase).toString();
+  const calendarsXml = await propfind(homeUrl, account, appPassword, `<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:resourcetype/><d:displayname/></d:prop></d:propfind>`, "1");
+  const match = calendarsXml.match(/<[^>]*href[^>]*>([^<]+)<\/[^>]*href>[\s\S]*?<[^>]*resourcetype[^>]*>[\s\S]*?<[^>]*calendar\b/i);
+  if (!match?.[1]) throw new Error("Calendario iCloud: nessun calendario disponibile.");
+  return new URL(match[1], partitionBase).toString();
+}
 function unfold(value: string) { return value.replace(/\r?\n[ \t]/g, ""); }
 function field(block: string, name: string) { return block.match(new RegExp(`^${name}(?:;[^:]*)?:(.*)$`, "mi"))?.[1]?.trim() || ""; }
 function dateValue(value: string) { const raw = value.replace(/Z$/, ""); if (/^\d{8}$/.test(raw)) return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`; if (/^\d{8}T\d{6}$/.test(raw)) return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`; return ""; }
