@@ -13,7 +13,7 @@ export type UserPreferences = {
   startPage: "La mia giornata" | "Panoramica" | "Clienti" | "Progetti" | "Lavorazioni";
   notifications: Record<Notification["entityType"], boolean> & { mentions: boolean; workflow: boolean };
 };
-export type CalendarEvent = { uid: string; title: string; date: string; endDate?: string; time?: string; location?: string; description?: string; source: "icloud" };
+export type CalendarEvent = { uid: string; title: string; date: string; endDate?: string; time?: string; location?: string; description?: string; assigneeIds?: string[]; locationType?: "studio" | "fuori-studio"; source: "icloud" };
 export type CalendarConnection = { provider: "icloud"; account: string; appPasswordCiphertext: string; calendarUrl?: string; mode: "read" | "two-way"; connectedAt: string; lastSyncAt?: string; status?: "connected" | "error"; events?: CalendarEvent[] };
 export type StudioSettings = { name: string; tagline: string; contactEmail: string; logo: string; logoPath?: string; workdayHours: number; calendarConnection?: CalendarConnection };
 export const defaultPreferences: UserPreferences = { palette: "salvia", density: "comfortable", startPage: "Panoramica", notifications: { project: true, milestone: true, task: true, service: true, mentions: true, workflow: true } };
