@@ -11,6 +11,6 @@ export async function GET() {
     const result = await readLogo(studio.logoPath);
     if (!result || result.statusCode !== 200) return new NextResponse(null, { status: 404 });
     if (!["image/png", "image/jpeg", "image/webp"].includes(result.blob.contentType)) return new NextResponse(null, { status: 415 });
-    return new NextResponse(result.stream, { headers: { "Content-Type": result.blob.contentType, "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+    return new NextResponse(result.stream, { headers: { "Content-Type": result.blob.contentType, "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400", "X-Content-Type-Options": "nosniff" } });
   } catch { console.error("Impossibile leggere il marchio da Blob."); return new NextResponse(null, { status: 503 }); }
 }

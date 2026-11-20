@@ -3,7 +3,10 @@ import { getDatabase } from "@/lib/store";
 import { setSession } from "@/lib/auth";
 import { verifyPassword, publicUser } from "@/lib/password";
 import { apiError } from "@/lib/http";
+const attempts = new Map<string, { count: number; resetAt: number }>();
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  const now = Date.now(); const current = attempts.get(ip); if (current && current.resetAt > now && current.count >= 12) return NextResponse.json({ error: "Troppi tentativi. Riprova tra qualche minuto." }, { status: 429 }); if (!current || current.resetAt <= now) attempts.set(ip, { count: 1, resetAt: now + 10 * 60 * 1000 }); else current.count += 1;
   const body = await request.json().catch(() => null);
   if (!body || typeof body.email !== "string" || typeof body.password !== "string") return NextResponse.json({ error: "Inserisci email e password." }, { status: 400 });
   try {
