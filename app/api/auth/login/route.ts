@@ -10,5 +10,5 @@ export async function POST(request: NextRequest) {
     const user = (await getDatabase()).users.find(item => item.email.toLowerCase() === body.email.trim().toLowerCase() && item.active);
     if (!user || !verifyPassword(body.password, user.passwordHash)) return NextResponse.json({ error: "Email o password non corretti." }, { status: 401 });
     const response = NextResponse.json({ ok: true, user: publicUser(user) }); setSession(response, user.id); return response;
-  } catch (error) { return apiError(error); }
+  } catch (error) { console.error("[auth/login]", error); const message = error instanceof Error ? error.message.replace(/postgres(?:ql)?:\/\/[^\s]+/gi, "[DATABASE_REDACTED]").slice(0, 240) : "Errore backend non identificato."; return NextResponse.json({ error: `Accesso non disponibile: ${message}` }, { status: 503 }); }
 }
